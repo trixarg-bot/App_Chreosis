@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'login_screen.dart';
 import 'add_category_screen.dart';
 import 'preferences_screen.dart';
+import 'privacy_policy_screen.dart';
 // import 'create_transaction_screen.dart';
 // import 'db/tests/test_db.dart';
 // import 'home_screen.dart';
@@ -48,6 +49,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/preferences': (context) => const PreferencesScreen(),
         '/add_category': (context) => const AddCategoryScreen(), // alias para compatibilidad
+        '/privacy_policy': (context) => const PrivacyPolicyScreen(),
       },
     );
   }

@@ -83,6 +83,7 @@ class _RegisterUserScreenState extends State<RegisterUserScreen> {
                 Icon(Icons.person_add_alt_1_rounded, size: 64, color: Color.fromARGB(255, 231, 238, 237)),
                 const SizedBox(height: 24),
                 TextFormField(
+                  style: TextStyle(color: Color.fromARGB(255, 238, 231, 237)),
                   controller: _usernameController,
                   decoration: InputDecoration(
                     labelText: 'Nombre de usuario',
@@ -101,6 +102,7 @@ class _RegisterUserScreenState extends State<RegisterUserScreen> {
                 ),
                 const SizedBox(height: 18),
                 TextFormField(
+                  style: TextStyle(color: Color.fromARGB(255, 238, 231, 237)),
                   controller: _passwordController,
                   obscureText: true,
                   decoration: InputDecoration(

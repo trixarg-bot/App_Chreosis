@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import 'package:chreosis_app/user_provider.dart';
 import 'package:chreosis_app/page_reportes_helper.dart';
 import 'package:chreosis_app/models/transaccion.dart';
+import 'package:chreosis_app/models/categoria.dart';
+import 'package:chreosis_app/db/database_helper.dart';
 
 
 class Reportes extends StatefulWidget {
@@ -60,13 +62,25 @@ class _ReportesState extends State<Reportes> {
   String _selectedValue = 'gastos';
   int _selectedButton = 0; // 0: Hoy, 1: Semana, 2: Mes
 
-  Future<List<CategoriaPorcentaje>>? _futureCategorias;
+  Map<int, Categoria> _categoriasPorId = {};
 
   @override
   void initState() {
     super.initState();
+    _loadCategorias();
     _loadData();
   }
+
+  Future<void> _loadCategorias() async {
+    final userId = Provider.of<UserProvider>(context, listen: false).usuario?.id;
+    if (userId == null) return;
+    final categorias = await DatabaseHelper.instance.getCategorias(userId: userId);
+    setState(() {
+      _categoriasPorId = {for (var c in categorias) c.id!: c};
+    });
+  }
+
+  Future<List<CategoriaPorcentaje>>? _futureCategorias;
 
   void _loadData() {
     final userId = Provider.of<UserProvider>(context, listen: false).usuario?.id;
@@ -112,7 +126,7 @@ class _ReportesState extends State<Reportes> {
     return Scaffold(
       backgroundColor: Colors.grey[850],
       appBar: AppBar(
-        title: Text('Mi Aplicación', style: TextStyle(color: Colors.white)),
+        title: Text('Reportes', style: TextStyle(color: Colors.white)),
         backgroundColor: Colors.grey[850],
         iconTheme: const IconThemeData(color: Colors.white),
       ),
@@ -320,11 +334,14 @@ class _ReportesState extends State<Reportes> {
                       ),
                       child: Row(
                         children: [
+                          // Mostrar icono y nombre de la categoría
                           CircleAvatar(
                             radius: 18,
                             backgroundColor: t.type == 'gasto' ? Colors.redAccent : Colors.lightGreenAccent,
                             child: Icon(
-                              Icons.shopping_cart,
+                              _categoriasPorId[t.categoryId]?.iconCode != null
+                                  ? IconData(_categoriasPorId[t.categoryId]!.iconCode, fontFamily: 'MaterialIcons')
+                                  : Icons.category,
                               color: Colors.grey[800],
                             ),
                           ),
@@ -334,7 +351,7 @@ class _ReportesState extends State<Reportes> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Categoría: ' + t.categoryId.toString(),
+                                  _categoriasPorId[t.categoryId]?.name ?? 'Sin categoría',
                                   style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: Colors.white),
                                 ),
                                 Text(
