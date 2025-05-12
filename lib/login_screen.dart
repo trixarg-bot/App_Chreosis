@@ -243,13 +243,13 @@ class _LoginScreenState extends State<LoginScreen> {
                         // Política de privacidad
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
-                            Text(
-                              'Política de privacidad',
-                              style: TextStyle(fontSize: 14, color: Colors.teal),
+                          children: [
+                            TextButton(
+                              onPressed: () => Navigator.pushNamed(context, '/privacy_policy'),
+                              child: Text('Política de Privacidad', style: TextStyle(fontSize: 16, color: const Color.fromARGB(255, 255, 255, 255))),
                             ),
-                            SizedBox(width: 8),
-                            Icon(Icons.info_outline, size: 22, color: Colors.teal),
+                            SizedBox(width: 0),
+                            Icon(Icons.info_outline, size: 22, color: const Color.fromARGB(255, 255, 255, 255)),
                           ],
                         ),
                       ],
