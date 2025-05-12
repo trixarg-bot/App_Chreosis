@@ -37,8 +37,10 @@ class _CreateTransactionScreenState extends State<CreateTransactionScreen> {
     return await DatabaseHelper.instance.getCuentasByUser(usuario.id!);
   }
 
-  Future<List<Categoria>> _fetchCategorias() async {
-    return await DatabaseHelper.instance.getCategorias();
+  Future<List<Categoria>> _fetchCategorias(BuildContext context) async {
+    final usuario = Provider.of<UserProvider>(context, listen: false).usuario;
+    if (usuario == null) return [];
+    return await DatabaseHelper.instance.getCategorias(userId: usuario.id!);
   }
 
   Future<void> _pickDate() async {
@@ -308,7 +310,7 @@ class _CreateTransactionScreenState extends State<CreateTransactionScreen> {
                 ),
                 const SizedBox(height: 18),
                 FutureBuilder<List<Categoria>>(
-                  future: _fetchCategorias(),
+                  future: _fetchCategorias(context),
                   builder: (context, snapshot) {
                     if (!snapshot.hasData) {
                       return const Center(child: CircularProgressIndicator());
@@ -486,3 +488,4 @@ class _CreateTransactionScreenState extends State<CreateTransactionScreen> {
     );
   }
 }
+ 
