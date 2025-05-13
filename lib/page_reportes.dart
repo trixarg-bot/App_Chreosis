@@ -6,6 +6,7 @@ import 'package:chreosis_app/page_reportes_helper.dart';
 import 'package:chreosis_app/models/transaccion.dart';
 import 'package:chreosis_app/models/categoria.dart';
 import 'package:chreosis_app/db/database_helper.dart';
+import 'package:intl/intl.dart';
 
 
 class Reportes extends StatefulWidget {
@@ -361,8 +362,13 @@ class _ReportesState extends State<Reportes> {
                               ],
                             ),
                           ),
+                          // Monto formateado
                           Text(
-                            (t.type == 'ingreso' ? '+ ' : '- ') + '\$${t.amount.toStringAsFixed(2)}',
+                            (() {
+                              final numberFormat = NumberFormat('#,##0.00', 'en_US');
+                              final formattedAmount = numberFormat.format(t.amount);
+                              return (t.type == 'ingreso' ? '+ ' : '- ') + '\$' + formattedAmount;
+                            })(),
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -382,4 +388,3 @@ class _ReportesState extends State<Reportes> {
     );
   }
 }
- 

@@ -8,7 +8,7 @@ import 'models/transaccion.dart';
 import 'page_reportes.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:rive/rive.dart' as rive ;
-// import 'package:intl/intl.dart';
+import 'package:intl/intl.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -66,6 +66,7 @@ String _formatDate(DateTime date) {
 }
 
 class _HomeScreenState extends State<HomeScreen> { 
+  final numberFormat = NumberFormat('#,##0.00', 'en_US');
 
   Future<_UserHomeData> _fetchUserData(usuario) async {
     double saldo = 0.0;
@@ -97,8 +98,9 @@ class _HomeScreenState extends State<HomeScreen> {
       final recientes = todasTransacciones.take(3).toList();
       for (final t in recientes) {
         final isIngreso = t.type == 'ingreso';
+        final formattedAmount = numberFormat.format(t.amount);
         final amountStr =
-            (isIngreso ? '+ ' : '- ') + '\$${t.amount.toStringAsFixed(2)}';
+            (isIngreso ? '+ ' : '- ') + '\$${formattedAmount}';
         final amountColor = isIngreso ? Color(0xFF00BFA5) : Color(0xFFD32F2F);
         final iconCode = categoriaIconos[t.categoryId] ?? Icons.category.codePoint;
         featuredExpenses.add(
@@ -112,13 +114,52 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       }
     }
+    final formattedSaldo = numberFormat.format(saldo);
     return _UserHomeData(
-      balance: '\$${saldo.toStringAsFixed(2)}',
+      balance: '\$${formattedSaldo}',
       featuredExpenses: featuredExpenses,
       allTransactions: todasTransacciones,
       categoriaNombres: categoriaNombres,
       categoriaIconos: categoriaIconos,
     );
+  }
+
+
+    int _selectedIndex = 0;
+    bool _iconChanged = false;
+
+    void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+
+    switch (index) {
+      case 1:
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const AccountsScreen()),
+        ).then((_) => setState(() {}));
+        break;
+      case 2:
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const CreateTransactionScreen()),
+        ).then((_) => setState(() {}));
+        break;
+      case 3:
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => Reportes()),
+        ).then((_) => setState(() {}));
+        break;
+    }
+  }
+
+  void _handleLongPress() {
+    setState(() {
+      _iconChanged = !_iconChanged;
+      print('Icono cambiado por long press');
+    });
   }
 
   @override
@@ -326,48 +367,62 @@ class _HomeScreenState extends State<HomeScreen> {
       //   tooltip: 'Borrar todas las transacciones (SOLO DESARROLLO)',
       // ),
       //! --- FIN BOTÓN SOLO DESARROLLO ---
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Colors.grey[800],
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: const Color.fromARGB(255, 252, 245, 245),
-        unselectedItemColor: const Color.fromARGB(255, 172, 171, 171),
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        items: [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: ''),
-          BottomNavigationBarItem(icon: Icon(Icons.wallet), label: ''),
-          BottomNavigationBarItem(icon: Icon(Icons.add), label: ''),
-          BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: ''),
-          BottomNavigationBarItem(icon: SvgPicture.asset('assets/APP chreosis.svg', width: 20, height: 20), label: ''),
-        ],
-        onTap: (index) {
-          if (index == 1) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const AccountsScreen()),
-            ).then((_) {
-              setState(() {}); // Refresca al volver
-            });
-          }
-          if (index == 2) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const CreateTransactionScreen(),
+      bottomNavigationBar: BottomAppBar(
+        color: Colors.grey[800],
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            IconButton(
+              icon: Icon(Icons.home,
+                  color: _selectedIndex == 0
+                      ? Colors.white
+                      : Color.fromARGB(255, 172, 171, 171)),
+              onPressed: () => _onItemTapped(0),
+            ),
+            GestureDetector(
+              onLongPress: _handleLongPress,
+              child: IconButton(
+                icon: Icon(
+                    _iconChanged ? Icons.wallet_giftcard : Icons.wallet,
+                    color: _selectedIndex == 1
+                        ? Colors.white
+                        : Color.fromARGB(255, 172, 171, 171)),
+                onPressed: () => _onItemTapped(1),
               ),
-            ).then((_) {
-              setState(() {}); // Refresca al volver
-            });
-          }
-          if (index == 3) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => Reportes()),
-            ).then((_) {
-              setState(() {}); // Refresca al volver
-            });
-          }
-        },
+            ),
+            GestureDetector(
+              onLongPress: _handleLongPress,
+              child: IconButton(
+                icon: Icon(
+                  _iconChanged ? Icons.add : Icons.mic,
+                  color: _selectedIndex == 2
+                      ? Colors.white
+                      : Color.fromARGB(255, 172, 171, 171)),
+                onPressed: () => _onItemTapped(2),
+              ),
+            ),
+            IconButton(
+              icon: Icon(Icons.bar_chart,
+                  color: _selectedIndex == 3
+                      ? Colors.white
+                      : Color.fromARGB(255, 172, 171, 171)),
+              onPressed: () => _onItemTapped(3),
+            ),
+            IconButton(
+              icon: SvgPicture.asset(
+                'assets/APP chreosis.svg',
+                width: 20,
+                height: 20,
+                colorFilter: ColorFilter.mode(
+                    _selectedIndex == 4
+                        ? Colors.white
+                        : Color.fromARGB(255, 172, 171, 171),
+                    BlendMode.srcIn),
+              ),
+              onPressed: () => _onItemTapped(4),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -432,7 +487,9 @@ class _AnimatedExpenseListState extends State<_AnimatedExpenseList> {
           final nombreCategoria =
               widget.categoriaNombres[t.categoryId] ?? 'Sin categoría';
           final isIngreso = t.type == 'ingreso';
-          final amountStr = (isIngreso ? '+ ' : '- ') + '\$${t.amount.toStringAsFixed(2)}';
+          final numberFormat = NumberFormat('#,##0.00', 'en_US');
+          final formattedAmount = numberFormat.format(t.amount);
+          final amountStr = (isIngreso ? '+ ' : '- ') + '\$${formattedAmount}';
           final amountColor = isIngreso ? Color(0xFF00BFA5) : Color(0xFFD32F2F);
           final iconCode = widget.categoriaIconos[t.categoryId] ?? Icons.category.codePoint;
           final icon = IconData(iconCode, fontFamily: 'MaterialIcons');
