@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print, use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'accounts_screen.dart';
 import 'create_transaction_screen.dart';
@@ -7,11 +9,10 @@ import 'user_provider.dart';
 import 'models/transaccion.dart';
 import 'page_reportes.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:rive/rive.dart' as rive ;
 import 'package:intl/intl.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -100,7 +101,7 @@ class _HomeScreenState extends State<HomeScreen> {
         final isIngreso = t.type == 'ingreso';
         final formattedAmount = numberFormat.format(t.amount);
         final amountStr =
-            (isIngreso ? '+ ' : '- ') + '\$${formattedAmount}';
+            '${isIngreso ? '+ ' : '- '}\$$formattedAmount';
         final amountColor = isIngreso ? Color(0xFF00BFA5) : Color(0xFFD32F2F);
         final iconCode = categoriaIconos[t.categoryId] ?? Icons.category.codePoint;
         featuredExpenses.add(
@@ -116,7 +117,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     final formattedSaldo = numberFormat.format(saldo);
     return _UserHomeData(
-      balance: '\$${formattedSaldo}',
+      balance: '\$$formattedSaldo',
       featuredExpenses: featuredExpenses,
       allTransactions: todasTransacciones,
       categoriaNombres: categoriaNombres,
@@ -434,12 +435,11 @@ class _AnimatedExpenseList extends StatefulWidget {
   final Map<int, int> categoriaIconos;
   final VoidCallback? onTransaccionEliminada;
   const _AnimatedExpenseList({
-    Key? key,
     required this.allTransactions,
     required this.categoriaNombres,
     required this.categoriaIconos,
     this.onTransaccionEliminada,
-  }) : super(key: key);
+  });
 
   @override
   State<_AnimatedExpenseList> createState() => _AnimatedExpenseListState();
@@ -489,7 +489,7 @@ class _AnimatedExpenseListState extends State<_AnimatedExpenseList> {
           final isIngreso = t.type == 'ingreso';
           final numberFormat = NumberFormat('#,##0.00', 'en_US');
           final formattedAmount = numberFormat.format(t.amount);
-          final amountStr = (isIngreso ? '+ ' : '- ') + '\$${formattedAmount}';
+          final amountStr = '${isIngreso ? '+ ' : '- '}\$$formattedAmount';
           final amountColor = isIngreso ? Color(0xFF00BFA5) : Color(0xFFD32F2F);
           final iconCode = widget.categoriaIconos[t.categoryId] ?? Icons.category.codePoint;
           final icon = IconData(iconCode, fontFamily: 'MaterialIcons');
@@ -571,14 +571,13 @@ class _ExpenseCardBase extends StatelessWidget {
   final double marginBottom;
 
   const _ExpenseCardBase({
-    Key? key,
     required this.icon,
     required this.category,
     required this.amount,
     required this.date,
     required this.amountColor,
     this.marginBottom = 10,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -645,7 +644,6 @@ class _AnimatedExpenseCard extends StatefulWidget {
   final int index;
 
   const _AnimatedExpenseCard({
-    super.key,
     required this.expense,
     required this.index,
   });
