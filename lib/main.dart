@@ -11,9 +11,11 @@ import 'privacy_policy_screen.dart';
 // import 'page_reportes.dart';
 import 'package:provider/provider.dart';
 import 'user_provider.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load();
   runApp(
     MultiProvider(
       providers: [

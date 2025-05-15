@@ -12,6 +12,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:intl/intl.dart';
+import 'utils/gpt_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -113,7 +114,10 @@ class _HomeScreenState extends State<HomeScreen> {
     isUserStopped = true;
     await speechToText.stop();
     isSpeechEnabled = false;
-    fullTranscription = '';
+    try {
+      final respuesta = await GptService().enviarTranscripcion(fullTranscription);
+    } catch (e) {
+    }
     // setState(() {});
   }
 
