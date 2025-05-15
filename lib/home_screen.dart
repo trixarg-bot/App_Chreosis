@@ -9,6 +9,8 @@ import 'user_provider.dart';
 import 'models/transaccion.dart';
 import 'page_reportes.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:speech_to_text/speech_to_text.dart';
+import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:intl/intl.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -41,7 +43,7 @@ class _ExpenseCardData {
   final Color color;
   _ExpenseCardData({
     required this.icon,
-    required this.category, 
+    required this.category,
     required this.amount,
     required this.date,
     required this.color,
@@ -68,6 +70,62 @@ String _formatDate(DateTime date) {
 
 class _HomeScreenState extends State<HomeScreen> { 
   final numberFormat = NumberFormat('#,##0.00', 'en_US');
+  final SpeechToText speechToText = SpeechToText();
+  bool isSpeechEnabled = false; // Indica si el reconocimiento de voz está habilitado
+  bool isUserStopped = false; // Indica si el usuario ha detenido la escucha
+  bool isListening = false; // Indica si el reconocimiento de voz está en curso
+  String lastWords = ''; // Últimas palabras reconocidas
+  final ValueNotifier<String> lastWordsNotifier = ValueNotifier(''); // Notificador para las últimas palabras reconocidas
+  String fullTranscription = ''; // Transcripción  completa de lo que ha dicho el usuario
+
+  @override
+  void initState() {
+    super.initState();
+    initSpeech();
+  }
+
+  //Esto sucede una vez al iniciar la app
+  void initSpeech() async {
+    isListening = await speechToText.initialize(onStatus: onSpeechStatus);
+    setState(() {});
+  }
+
+  //Esto sucede cada vez que se presiona el botón de hablar, para iniciar el reconocimiento de voz
+  void startListening() async {
+    isUserStopped = false;
+    if (isListening) {
+      await speechToText.listen(onResult: onSpeechResult);
+      isSpeechEnabled = true;
+    }
+  }
+
+  void onSpeechStatus(String status) {
+    if (status == 'notListening' && isSpeechEnabled && !isUserStopped) {
+      // Reinicia la escucha si aún está habilitada
+      Future.delayed(const Duration(milliseconds: 100), () {
+        startListening();
+      });
+    }
+  }
+
+  //Esto sucede cada vez que se presiona el botón de hablar, para detener el reconocimiento de voz
+  void stopListening() async {
+    isUserStopped = true;
+    await speechToText.stop();
+    isSpeechEnabled = false;
+    fullTranscription = '';
+    // setState(() {});
+  }
+
+  //Esto sucede cada vez que se detecta un resultado del reconocimiento de voz
+  void onSpeechResult(SpeechRecognitionResult result) {
+    lastWords = result.recognizedWords;
+    lastWordsNotifier.value = lastWords;
+    // Acumular transcripción continua
+    if (result.finalResult) {
+      fullTranscription += '${result.recognizedWords} ';
+    }
+  }
 
   Future<_UserHomeData> _fetchUserData(usuario) async {
     double saldo = 0.0;
@@ -159,7 +217,12 @@ class _HomeScreenState extends State<HomeScreen> {
   void _handleLongPress() {
     setState(() {
       _iconChanged = !_iconChanged;
-      print('Icono cambiado por long press');
+      if (_iconChanged) {
+        startListening();
+      } else {
+        stopListening();
+        lastWordsNotifier.value = '';
+      }
     });
   }
 
@@ -368,62 +431,104 @@ class _HomeScreenState extends State<HomeScreen> {
       //   tooltip: 'Borrar todas las transacciones (SOLO DESARROLLO)',
       // ),
       //! --- FIN BOTÓN SOLO DESARROLLO ---
-      bottomNavigationBar: BottomAppBar(
-        color: Colors.grey[800],
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            IconButton(
-              icon: Icon(Icons.home,
-                  color: _selectedIndex == 0
-                      ? Colors.white
-                      : Color.fromARGB(255, 172, 171, 171)),
-              onPressed: () => _onItemTapped(0),
+      bottomNavigationBar: Stack(
+        alignment: Alignment.bottomCenter,
+        children: [
+          ValueListenableBuilder<String>(
+            valueListenable: lastWordsNotifier,
+            builder: (context, lastWords, child) {
+              return (isSpeechEnabled && lastWords.isNotEmpty)
+                  ? Container(
+                    margin: const EdgeInsets.only(bottom: 70),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.85),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    constraints: const BoxConstraints(maxWidth: 340),
+                    child: Text(
+                      lastWords,
+                      style: const TextStyle(color: Colors.white, fontSize: 14),
+                      textAlign: TextAlign.center,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 3,
+                    ),
+                  )
+                  : const SizedBox.shrink();
+            },
+          ),
+          BottomAppBar(
+            color: Colors.grey[800],
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                IconButton(
+                  icon: Icon(
+                    Icons.home,
+                    color:
+                        _selectedIndex == 0
+                            ? Colors.white
+                            : Color.fromARGB(255, 172, 171, 171),
+                  ),
+                  onPressed: () => _onItemTapped(0),
+                ),
+                GestureDetector(
+                  onLongPress: _handleLongPress,
+                  child: IconButton(
+                    icon: Icon(
+                      Icons.wallet,
+                      color:
+                          _selectedIndex == 1
+                              ? Colors.white
+                              : Color.fromARGB(255, 172, 171, 171),
+                    ),
+                    onPressed: () => _onItemTapped(1),
+                  ),
+                ),
+                GestureDetector(
+                  onLongPress: _handleLongPress,
+                  child: IconButton(
+                    icon: Icon(
+                      _iconChanged ? Icons.mic : Icons.add,
+                      color:
+                          _selectedIndex == 2
+                              ? Colors.white
+                              : Color.fromARGB(255, 172, 171, 171),
+                    ),
+                    onPressed: () => _onItemTapped(2),
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(
+                    Icons.bar_chart,
+                    color:
+                        _selectedIndex == 3
+                            ? Colors.white
+                            : Color.fromARGB(255, 172, 171, 171),
+                  ),
+                  onPressed: () => _onItemTapped(3),
+                ),
+                IconButton(
+                  icon: SvgPicture.asset(
+                    'assets/APP chreosis.svg',
+                    width: 20,
+                    height: 20,
+                    colorFilter: ColorFilter.mode(
+                      _selectedIndex == 4
+                          ? Colors.white
+                          : Color.fromARGB(255, 172, 171, 171),
+                      BlendMode.srcIn,
+                    ),
+                  ),
+                  onPressed: () => _onItemTapped(4),
+                ),
+              ],
             ),
-            GestureDetector(
-              onLongPress: _handleLongPress,
-              child: IconButton(
-                icon: Icon(
-                    _iconChanged ? Icons.wallet_giftcard : Icons.wallet,
-                    color: _selectedIndex == 1
-                        ? Colors.white
-                        : Color.fromARGB(255, 172, 171, 171)),
-                onPressed: () => _onItemTapped(1),
-              ),
-            ),
-            GestureDetector(
-              onLongPress: _handleLongPress,
-              child: IconButton(
-                icon: Icon(
-                  _iconChanged ? Icons.add : Icons.mic,
-                  color: _selectedIndex == 2
-                      ? Colors.white
-                      : Color.fromARGB(255, 172, 171, 171)),
-                onPressed: () => _onItemTapped(2),
-              ),
-            ),
-            IconButton(
-              icon: Icon(Icons.bar_chart,
-                  color: _selectedIndex == 3
-                      ? Colors.white
-                      : Color.fromARGB(255, 172, 171, 171)),
-              onPressed: () => _onItemTapped(3),
-            ),
-            IconButton(
-              icon: SvgPicture.asset(
-                'assets/APP chreosis.svg',
-                width: 20,
-                height: 20,
-                colorFilter: ColorFilter.mode(
-                    _selectedIndex == 4
-                        ? Colors.white
-                        : Color.fromARGB(255, 172, 171, 171),
-                    BlendMode.srcIn),
-              ),
-              onPressed: () => _onItemTapped(4),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
