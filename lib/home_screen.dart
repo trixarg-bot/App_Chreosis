@@ -275,7 +275,7 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: Colors.grey[850],
       body: SafeArea(
         child: FutureBuilder<_UserHomeData>(
-          future: _fetchUserData(usuario),
+          future: _userHomeDataFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
@@ -484,7 +484,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       vertical: 12,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.85),
+                      color: Colors.black,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     constraints: const BoxConstraints(maxWidth: 340),
@@ -712,7 +712,7 @@ class _ExpenseCardBase extends StatelessWidget {
   final String amount;
   final String date;
   final Color amountColor;
-  final double marginBottom;
+  
 
   const _ExpenseCardBase({
     required this.icon,
@@ -720,13 +720,13 @@ class _ExpenseCardBase extends StatelessWidget {
     required this.amount,
     required this.date,
     required this.amountColor,
-    this.marginBottom = 10,
+
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.only(bottom: marginBottom),
+      margin: EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       decoration: BoxDecoration(
         color: Colors.grey[800],

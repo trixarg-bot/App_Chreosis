@@ -56,7 +56,7 @@ class ReportesDataHelper {
     // 4. Agrupar por categoria y sumar montos
     Map<int, double> sumaPorCategoria = {};
     for (final t in transaccionesFiltradas) {
-      sumaPorCategoria[t.categoryId] = (sumaPorCategoria[t.categoryId] ?? 0) + (t.amount ?? 0);
+      sumaPorCategoria[t.categoryId] = (sumaPorCategoria[t.categoryId] ?? 0) + (t.amount);
     }
     // 5. Sumar total
     final total = sumaPorCategoria.values.fold(0.0, (a, b) => a + b);
