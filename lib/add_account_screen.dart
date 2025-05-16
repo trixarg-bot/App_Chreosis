@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_iconpicker/flutter_iconpicker.dart';
+
 import 'package:provider/provider.dart';
 import 'package:chreosis_app/models/cuenta.dart';
 import 'package:chreosis_app/db/database_helper.dart';
@@ -75,10 +75,7 @@ class _AddAccountScreenState extends State<AddAccountScreen> {
   @override
   Widget build(BuildContext context) {
     // Paleta
-    const emerald = Color(0xFF00BFA5);
-    const skyBlue = Color(0xFF4FC3F7);
-    const darkText = Color(0xFF212121);
-    const bgGray = Color(0xFFF5F5F5);
+
 
     return Scaffold(
       backgroundColor: Colors.grey[850],

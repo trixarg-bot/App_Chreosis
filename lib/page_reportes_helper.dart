@@ -1,7 +1,7 @@
 import 'package:chreosis_app/db/database_helper.dart';
 import 'package:chreosis_app/models/categoria.dart';
 import 'package:chreosis_app/models/transaccion.dart';
-import 'package:flutter/material.dart';
+
 import 'dart:async';
 
 class CategoriaPorcentaje {
