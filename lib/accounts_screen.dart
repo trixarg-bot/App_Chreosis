@@ -30,8 +30,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
     // Paleta de colores
     const emerald = Color.fromARGB(255, 29, 29, 29);
     const skyBlue = Color.fromARGB(255, 28, 64, 80);
-    const yellow = Color(0xFFFFEB3B);
-    const darkText = Color(0xFF212121);
+
     // const bgGray = Color(0xFFF5F5F5);
 
     return Scaffold(
@@ -151,7 +150,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                       }
 
                       final cuentas = snapshot.data!;
-                      final accountColors = [emerald, skyBlue, yellow, darkText];
+
 
                       return ListView.separated(
                         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
