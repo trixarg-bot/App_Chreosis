@@ -79,10 +79,14 @@ class _HomeScreenState extends State<HomeScreen> {
   final ValueNotifier<String> lastWordsNotifier = ValueNotifier(''); // Notificador para las últimas palabras reconocidas
   String fullTranscription = ''; // Transcripción  completa de lo que ha dicho el usuario
 
+  late Future<_UserHomeData> _userHomeDataFuture;
+
   @override
   void initState() {
     super.initState();
     initSpeech();
+    final usuario = Provider.of<UserProvider>(context, listen: false).usuario;
+    _userHomeDataFuture = _fetchUserData(usuario);
   }
 
   //Esto sucede una vez al iniciar la app
@@ -115,8 +119,32 @@ class _HomeScreenState extends State<HomeScreen> {
     await speechToText.stop();
     isSpeechEnabled = false;
     try {
-      final respuesta = await GptService().enviarTranscripcion(fullTranscription);
+      showDialog(
+        context: context,
+        builder: (context) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        },
+      );
+      final datos = await GptService().enviarTranscripcion(fullTranscription);
+      Navigator.pop(context);
+      // Navegar a la pantalla de crear transacción y pasar los datos
+      final result = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => CreateTransactionScreen(datosGPT: datos),
+        ),
+      );
+      if (result == true) {
+        final usuario = Provider.of<UserProvider>(context, listen: false).usuario;
+        setState(() {
+          _userHomeDataFuture = _fetchUserData(usuario);
+        });
+      }
+      fullTranscription = '';
     } catch (e) {
+      // Puedes mostrar un error aquí si lo deseas
     }
     // setState(() {});
   }
@@ -207,7 +235,14 @@ class _HomeScreenState extends State<HomeScreen> {
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => const CreateTransactionScreen()),
-        ).then((_) => setState(() {}));
+        ).then((result) {
+          if (result == true) {
+            final usuario = Provider.of<UserProvider>(context, listen: false).usuario;
+            setState(() {
+              _userHomeDataFuture = _fetchUserData(usuario);
+            });
+          }
+        });
         break;
       case 3:
         Navigator.push(

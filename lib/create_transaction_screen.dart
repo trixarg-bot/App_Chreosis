@@ -4,10 +4,12 @@ import 'db/database_helper.dart';
 import 'models/cuenta.dart';
 import 'models/categoria.dart';
 import 'models/transaccion.dart';
+import 'models/datos_transaccion.dart';
 import 'user_provider.dart';
 
 class CreateTransactionScreen extends StatefulWidget {
-  const CreateTransactionScreen({Key? key}) : super(key: key);
+  final DatosTransaccion? datosGPT;
+  const CreateTransactionScreen({Key? key, this.datosGPT}) : super(key: key);
 
   @override
   State<CreateTransactionScreen> createState() =>
@@ -15,6 +17,36 @@ class CreateTransactionScreen extends StatefulWidget {
 }
 
 class _CreateTransactionScreenState extends State<CreateTransactionScreen> {
+  @override
+  void initState() {
+    super.initState();
+    if (widget.datosGPT != null) {
+      fillFormFromDatosTransaccion(widget.datosGPT!);
+    }
+  }
+  // ...
+  /// Llena el formulario con los datos recibidos de GPT (excepto la cuenta)
+  void fillFormFromDatosTransaccion(DatosTransaccion datos) {
+    setState(() {
+      _amountController.text = datos.monto;
+      _noteController.text = datos.descripcion;
+      _selectedType = datos.tipoTransaccion;
+      // La categoría se buscará por nombre cuando estén cargadas
+      // La cuenta NO se llena aquí
+      if (datos.fecha.isNotEmpty) {
+        try {
+          final partes = datos.fecha.split('-');
+          if (partes.length == 3) {
+            _selectedDate = DateTime(
+              int.parse(partes[2]),
+              int.parse(partes[1]),
+              int.parse(partes[0]),
+            );
+          }
+        } catch (_) {}
+      }
+    });
+  }
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _noteController = TextEditingController();
@@ -133,7 +165,7 @@ class _CreateTransactionScreenState extends State<CreateTransactionScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Transacción guardada exitosamente')),
       );
-      Navigator.pop(context);
+      Navigator.pop(context, true);
     }
   }
 
