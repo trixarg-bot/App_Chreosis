@@ -144,11 +144,9 @@ class DatabaseHelper {
 
   //** */ --- CATEGORIAS ---
   // Obtener todas las categorías de un usuario
-  Future<List<Categoria>> getCategorias({int? userId}) async {
+  Future<List<Categoria>> getCategorias(int userId) async {
     final db = await instance.database;
-    final result = userId != null
-        ? await db.query('categorias', where: 'user_id = ?', whereArgs: [userId], orderBy: 'id DESC')
-        : await db.query('categorias', orderBy: 'id DESC');
+    final result = await db.query('categorias', where: 'user_id = ?', whereArgs: [userId], orderBy: 'id DESC');
     return result.map((map) => Categoria.fromMap(map)).toList();
   }
 
@@ -180,18 +178,17 @@ class DatabaseHelper {
   }
 
   // Eliminar una categoría
-  Future<int> deleteCategoria(int id) async {
+  Future<int> deleteCategoria(int id, int userId) async {
     final db = await instance.database;
-    return await db.delete('categorias', where: 'id = ?', whereArgs: [id]);
+    return await db.delete('categorias', where: 'id = ? AND user_id = ?', whereArgs: [id, userId]);
   }
 
   //** */ --- TRANSACCIONES ---
   // Obtener todas las transacciones de un usuario
-  Future<List<Transaccion>> getTransacciones({int? userId}) async {
+  Future<List<Transaccion>> getTransacciones(int userId) async {
     final db = await instance.database;
-    final result = userId != null
-        ? await db.query('transacciones', where: 'user_id = ?', whereArgs: [userId], orderBy: 'date DESC')
-        : await db.query('transacciones', orderBy: 'date DESC');
+    final List<Map<String, Object?>> result;
+    result = await db.query('transacciones', where: 'user_id = ?', whereArgs: [userId], orderBy: 'date DESC');
     return result.map((map) => Transaccion.fromMap(map)).toList();
   }
 
@@ -223,7 +220,7 @@ class DatabaseHelper {
   }
 
   /// Borra una transacción y revierte el efecto en la cuenta correspondiente
-  Future<bool> deleteTransaccion(int transaccionId) async {
+  Future<bool> deleteTransaccion(int transaccionId, int userId) async {
     final transaccion = await getTransaccionById(transaccionId);
     if (transaccion == null) return false;
 

@@ -1,18 +1,20 @@
-import 'package:flutter/material.dart';
-import 'models/usuario.dart';
+//!ELIMINAR ESTA PAGINA 
 
-class UserProvider extends ChangeNotifier {
-  Usuario? _usuario;
+// import 'package:flutter/material.dart';
+// import 'models/usuario.dart';
 
-  Usuario? get usuario => _usuario;
+// class UserProvider extends ChangeNotifier {
+//   Usuario? _usuario;
 
-  void setUsuario(Usuario usuario) {
-    _usuario = usuario;
-    notifyListeners();
-  }
+//   Usuario? get usuario => _usuario;
 
-  void logout() {
-    _usuario = null;
-    notifyListeners();
-  }
-}
+//   void setUsuario(Usuario usuario) {
+//     _usuario = usuario;
+//     notifyListeners();
+//   }
+
+//   void logout() {
+//     _usuario = null;
+//     notifyListeners();
+//   }
+// }

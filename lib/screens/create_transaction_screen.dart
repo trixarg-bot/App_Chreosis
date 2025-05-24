@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'db/database_helper.dart';
-import 'models/cuenta.dart';
-import 'models/categoria.dart';
-import 'models/transaccion.dart';
-import 'models/datos_transaccion.dart';
-import 'user_provider.dart';
+import '../models/cuenta.dart';
+import '../models/categoria.dart';
+import '../models/transaccion.dart';
+import '../models/datos_transaccion.dart';
+import '../providers/transaction_provider.dart';
+import '../providers/usuario_provider.dart';
+import '../providers/categoria_provider.dart';
+import '../providers/cuenta_provider.dart';
 
 class CreateTransactionScreen extends StatefulWidget {
   final DatosTransaccion? datosGPT;
@@ -20,19 +22,30 @@ class _CreateTransactionScreenState extends State<CreateTransactionScreen> {
   @override
   void initState() {
     super.initState();
+    _fetchCategorias();
+    _fetchCuentas();
     if (widget.datosGPT != null) {
       fillFormFromDatosTransaccion(widget.datosGPT!);
     }
   }
-  // ...
-  /// Llena el formulario con los datos recibidos de GPT (excepto la cuenta)
+
+   /// Llena el formulario con los datos recibidos de GPT (excepto la cuenta)
   void fillFormFromDatosTransaccion(DatosTransaccion datos) {
     setState(() {
       _amountController.text = datos.monto;
       _noteController.text = datos.descripcion;
       _selectedType = datos.tipoTransaccion;
-      // La categoría se buscará por nombre cuando estén cargadas
-      // La cuenta NO se llena aquí
+      
+      // Buscar y seleccionar la categoría si GPT sugirió una
+        final categoriaProvider = Provider.of<CategoriaProvider>(context, listen: false);
+        final categoriaEncontrada = categoriaProvider.categorias.firstWhere(
+          (cat) => cat.name.toLowerCase() == datos.categoria.toLowerCase(),
+          orElse: () => categoriaProvider.categorias.first,
+        );
+        _selectedCategory = categoriaEncontrada;
+      
+
+      // Establecer la fecha si se proporcionó una
       if (datos.fecha.isNotEmpty) {
         try {
           final partes = datos.fecha.split('-');
@@ -47,6 +60,7 @@ class _CreateTransactionScreenState extends State<CreateTransactionScreen> {
       }
     });
   }
+
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _noteController = TextEditingController();
@@ -63,16 +77,30 @@ class _CreateTransactionScreenState extends State<CreateTransactionScreen> {
   Color get bgGray => const Color.fromARGB(255, 81, 81, 81);
   Color get darkText => const Color(0xFF212121);
 
-  Future<List<Cuenta>> _fetchCuentas(BuildContext context) async {
-    final usuario = Provider.of<UserProvider>(context, listen: false).usuario;
-    if (usuario == null) return [];
-    return await DatabaseHelper.instance.getCuentasByUser(usuario.id!);
+  Future<List<Cuenta>> _fetchCuentas() async {
+    final usuario =
+        Provider.of<UsuarioProvider>(context, listen: false).usuario;
+    if (usuario != null) {
+      final cuentaProvider = Provider.of<CuentaProvider>(
+        context,
+        listen: false, 
+      );
+      await cuentaProvider.cargarCuentas(usuario.id!);
+    }
+    return [];
   }
 
-  Future<List<Categoria>> _fetchCategorias(BuildContext context) async {
-    final usuario = Provider.of<UserProvider>(context, listen: false).usuario;
-    if (usuario == null) return [];
-    return await DatabaseHelper.instance.getCategorias(userId: usuario.id!);
+  Future<void> _fetchCategorias() async {
+    final usuario =
+        Provider.of<UsuarioProvider>(context, listen: false).usuario;
+
+    if (usuario != null) {
+      final categoriaProvider = Provider.of<CategoriaProvider>(
+        context,
+        listen: false,
+      );
+      await categoriaProvider.cargarCategorias(usuario.id!);
+    }
   }
 
   Future<void> _pickDate() async {
@@ -85,9 +113,24 @@ class _CreateTransactionScreenState extends State<CreateTransactionScreen> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: ColorScheme.light(
-              primary: const Color.fromARGB(255, 52, 50, 50), // color de acento (botón OK, selección)
-              onPrimary: const Color.fromARGB(255, 241, 241, 241), // texto sobre color de acento
-              surface: Color.fromARGB(255, 85, 81, 81), // fondo principal del calendario
+              primary: const Color.fromARGB(
+                255,
+                52,
+                50,
+                50,
+              ), // color de acento (botón OK, selección)
+              onPrimary: const Color.fromARGB(
+                255,
+                241,
+                241,
+                241,
+              ), // texto sobre color de acento
+              surface: Color.fromARGB(
+                255,
+                85,
+                81,
+                81,
+              ), // fondo principal del calendario
               onSurface: Colors.white, // texto principal
               background: Colors.white, // fondo general
             ),
@@ -110,7 +153,8 @@ class _CreateTransactionScreenState extends State<CreateTransactionScreen> {
 
   Future<void> _saveTransaction() async {
     if (!_formKey.currentState!.validate()) return;
-    final usuario = Provider.of<UserProvider>(context, listen: false).usuario;
+    final usuario =
+        Provider.of<UsuarioProvider>(context, listen: false).usuario;
     if (usuario == null ||
         _selectedAccount == null ||
         _selectedCategory == null)
@@ -128,37 +172,10 @@ class _CreateTransactionScreenState extends State<CreateTransactionScreen> {
       createdAt: DateTime.now().toIso8601String(),
     );
 
-    // Validar fondos suficientes antes de guardar la transacción
-    final cuenta = await DatabaseHelper.instance.getCuentaById(
-      _selectedAccount!.id!,
-    );
-    if (_selectedType == 'gasto' && cuenta != null && montoGasto > cuenta.amount) {
-      setState(() => _loading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Fondos insuficientes en la cuenta seleccionada.')),
-      );
-      return;
-    }
-
-    await DatabaseHelper.instance.insertTransaccion(transaccion);
-
-    // ACTUALIZAR MONTO DE LA CUENTA
-    if (cuenta != null) {
-      double nuevoMonto = cuenta.amount;
-      if (_selectedType == 'gasto') {
-        nuevoMonto -= transaccion.amount;
-      } else {
-        nuevoMonto += transaccion.amount;
-      }
-      final cuentaActualizada = Cuenta(
-        id: cuenta.id,
-        userId: cuenta.userId,
-        name: cuenta.name,
-        type: cuenta.type,
-        amount: nuevoMonto,
-      );
-      await DatabaseHelper.instance.updateCuenta(cuentaActualizada);
-    }
+    Provider.of<TransactionProvider>(
+      context,
+      listen: false,
+    ).agregarTransaccion(transaccion);
 
     setState(() => _loading = false);
     if (mounted) {
@@ -288,21 +305,18 @@ class _CreateTransactionScreenState extends State<CreateTransactionScreen> {
                               : null,
                 ),
                 const SizedBox(height: 18),
-                FutureBuilder<List<Cuenta>>(
-                  future: _fetchCuentas(context),
-                  builder: (context, snapshot) {
-                    if (!snapshot.hasData) {
+                Consumer<CuentaProvider>(
+                  builder: (context, cuentaProvider, _) {
+                    if (cuentaProvider.isLoading) {
                       return const Center(child: CircularProgressIndicator());
                     }
-                    final cuentas = snapshot.data!;
+                    final cuentas = cuentaProvider.cuentas;
                     Cuenta? selectedAccount;
                     if (_selectedAccount != null && cuentas.isNotEmpty) {
                       selectedAccount = cuentas.firstWhere(
                         (c) => c.id == _selectedAccount!.id,
                         orElse: () => cuentas.first,
                       );
-                    } else {
-                      selectedAccount = null;
                     }
                     return DropdownButtonFormField<Cuenta>(
                       style: TextStyle(color: Colors.white, fontSize: 16),
@@ -311,13 +325,17 @@ class _CreateTransactionScreenState extends State<CreateTransactionScreen> {
                       items:
                           cuentas
                               .map(
-                                (c) => DropdownMenuItem(
-                                  value: c,
-                                  child: Text(c.name),
+                                (cuenta) => DropdownMenuItem(
+                                  value: cuenta,
+                                  child: Text(
+                                    cuenta.name,
+                                    style: TextStyle(color: Colors.white),
+                                  ),
                                 ),
                               )
                               .toList(),
-                      onChanged: (c) => setState(() => _selectedAccount = c),
+                      onChanged:
+                          (cuenta) => setState(() => _selectedAccount = cuenta),
                       decoration: InputDecoration(
                         labelText: 'Cuenta',
                         prefixIcon: const Icon(
@@ -329,33 +347,29 @@ class _CreateTransactionScreenState extends State<CreateTransactionScreen> {
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(14),
-                          borderSide: BorderSide(
-                            color: const Color.fromARGB(255, 255, 255, 255),
-                          ),
+                          borderSide: const BorderSide(color: Colors.white),
                         ),
-                        labelStyle: TextStyle(color: Colors.white),
+                        labelStyle: const TextStyle(color: Colors.white),
                       ),
                       validator:
-                          (c) => c == null ? 'Seleccione una cuenta' : null,
+                          (c) =>
+                              c == null ? 'Seleccione una cuenta' : null,
                     );
                   },
                 ),
                 const SizedBox(height: 18),
-                FutureBuilder<List<Categoria>>(
-                  future: _fetchCategorias(context),
-                  builder: (context, snapshot) {
-                    if (!snapshot.hasData) {
+                Consumer<CategoriaProvider>(
+                  builder: (context, categoriaProvider, _) {
+                    if (categoriaProvider.isLoading) {
                       return const Center(child: CircularProgressIndicator());
                     }
-                    final categorias = snapshot.data!;
+                    final categorias = categoriaProvider.categorias;
                     Categoria? selectedCategory;
                     if (_selectedCategory != null && categorias.isNotEmpty) {
                       selectedCategory = categorias.firstWhere(
                         (cat) => cat.id == _selectedCategory!.id,
                         orElse: () => categorias.first,
                       );
-                    } else {
-                      selectedCategory = null;
                     }
                     return DropdownButtonFormField<Categoria>(
                       style: TextStyle(color: Colors.white, fontSize: 16),
@@ -366,7 +380,10 @@ class _CreateTransactionScreenState extends State<CreateTransactionScreen> {
                               .map(
                                 (cat) => DropdownMenuItem(
                                   value: cat,
-                                  child: Text(cat.name),
+                                  child: Text(
+                                    cat.name,
+                                    style: TextStyle(color: Colors.white),
+                                  ),
                                 ),
                               )
                               .toList(),
@@ -383,11 +400,9 @@ class _CreateTransactionScreenState extends State<CreateTransactionScreen> {
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(14),
-                          borderSide: BorderSide(
-                            color: const Color.fromARGB(255, 255, 255, 255),
-                          ),
+                          borderSide: const BorderSide(color: Colors.white),
                         ),
-                        labelStyle: TextStyle(color: Colors.white),
+                        labelStyle: const TextStyle(color: Colors.white),
                       ),
                       validator:
                           (cat) =>
@@ -520,4 +535,3 @@ class _CreateTransactionScreenState extends State<CreateTransactionScreen> {
     );
   }
 }
- 

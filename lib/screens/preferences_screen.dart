@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'user_provider.dart';
+import '../providers/usuario_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class PreferencesScreen extends StatelessWidget {
@@ -88,7 +88,7 @@ class PreferencesScreen extends StatelessWidget {
             titleColor: Colors.red,
             onTap: () async {
               // Limpiar sesión en Provider
-              final userProvider = Provider.of<UserProvider>(context, listen: false);
+              final userProvider = Provider.of<UsuarioProvider>(context, listen: false);
               userProvider.logout();
               // Limpiar sesión en SharedPreferences
               final prefs = await SharedPreferences.getInstance();

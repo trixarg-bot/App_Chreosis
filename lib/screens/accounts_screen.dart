@@ -1,9 +1,9 @@
+//TODO: HACER QUE EL NOMBRE DE LA CUENTA NO ACEPTE NUMEROS.
 import 'package:flutter/material.dart';
-import 'package:chreosis_app/models/cuenta.dart';
-import 'package:chreosis_app/db/database_helper.dart';
 import 'package:provider/provider.dart';
 import 'add_account_screen.dart';
-import 'user_provider.dart';
+import '../providers/usuario_provider.dart';
+import '../providers/cuenta_provider.dart';
 
 class AccountsScreen extends StatefulWidget {
   const AccountsScreen({super.key});
@@ -13,16 +13,18 @@ class AccountsScreen extends StatefulWidget {
 }
 
 class _AccountsScreenState extends State<AccountsScreen> {
-  Future<List<Cuenta>> _fetchCuentas(BuildContext context) async {
-    final usuario = Provider.of<UserProvider>(context, listen: false).usuario;
-    if (usuario == null) return [];
-    return await DatabaseHelper.instance.getCuentasByUser(usuario.id!);
+  @override
+  void initState() {
+    super.initState();
+    _loadInitialData();
   }
 
-  Future<double> _fetchSaldoTotal(BuildContext context) async {
-    final usuario = Provider.of<UserProvider>(context, listen: false).usuario;
-    if (usuario == null) return 0.0;
-    return await DatabaseHelper.instance.getSaldoTotal(usuario.id!);
+  Future<void> _loadInitialData() async { 
+    final usuario = Provider.of<UsuarioProvider>(context, listen: false).usuario;
+    if (usuario != null) {
+      final cuentaProvider = Provider.of<CuentaProvider>(context, listen: false);
+      await cuentaProvider.cargarCuentas(usuario.id!);
+    }
   }
 
   @override
@@ -41,7 +43,6 @@ class _AccountsScreenState extends State<AccountsScreen> {
             context,
             MaterialPageRoute(builder: (context) => const AddAccountScreen()),
           );
-          setState(() {}); // Refresca la pantalla al volver
         },
         icon: const Icon(Icons.add, color: Colors.white),
         label: const Text('Nueva Cuenta', style: TextStyle(color: Colors.white)),
@@ -50,7 +51,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
       body: SafeArea(
         child: Builder(
           builder: (context) {
-            final usuario = Provider.of<UserProvider>(context).usuario;
+            final usuario = Provider.of<UsuarioProvider>(context).usuario;
             if (usuario == null) {
               return const Center(
                 child: Text('No hay usuario autenticado'),
@@ -105,16 +106,27 @@ class _AccountsScreenState extends State<AccountsScreen> {
                           fontSize: 18,
                         ),
                       ),
-                      FutureBuilder<double>(
-                        future: _fetchSaldoTotal(context),
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState == ConnectionState.waiting) {
+                      Consumer<CuentaProvider>(
+                        builder: (context, cuentaProvider, _) {
+                          if (cuentaProvider.isLoading) {
                             return const Padding(
                               padding: EdgeInsets.symmetric(vertical: 8),
-                              child: SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white70)),
+                              child: SizedBox(
+                                height: 18, 
+                                width: 18, 
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white70
+                                )
+                              ),
                             );
                           }
-                          final saldo = snapshot.data ?? 0.0;
+                          
+                          final saldo = cuentaProvider.cuentas.fold<double>(
+                            0.0,
+                            (total, cuenta) => total + cuenta.amount
+                          );
+                          
                           return Padding(
                             padding: const EdgeInsets.only(top: 6, bottom: 2),
                             child: Text(
@@ -134,13 +146,14 @@ class _AccountsScreenState extends State<AccountsScreen> {
                 const SizedBox(height: 16),
                 // Lista de cuentas
                 Expanded(
-                  child: FutureBuilder<List<Cuenta>>(
-                    future: _fetchCuentas(context),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
+                  child: Consumer<CuentaProvider>(
+                    builder: (context, cuentaProvider, _) {
+                      if (cuentaProvider.isLoading) {
                         return const Center(child: CircularProgressIndicator());
                       }
-                      if (!snapshot.hasData || snapshot.data!.isEmpty) {
+
+                      final cuentas = cuentaProvider.cuentas;
+                      if (cuentas.isEmpty) {
                         return const Center(
                           child: Text(
                             'No hay cuentas registradas',
@@ -148,9 +161,6 @@ class _AccountsScreenState extends State<AccountsScreen> {
                           ),
                         );
                       }
-
-                      final cuentas = snapshot.data!;
-
 
                       return ListView.separated(
                         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
@@ -239,7 +249,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                         ),
                                       );
                                       if (confirm == true) {
-                                        await DatabaseHelper.instance.deleteCuenta(cuenta.id!);
+                                        await cuentaProvider.eliminarCuenta(cuenta.id!);
                                         if (mounted) {
                                           setState(() {});
                                           ScaffoldMessenger.of(context).showSnackBar(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:chreosis_app/models/usuario.dart';
-import 'package:chreosis_app/db/database_helper.dart';
+import '../providers/usuario_provider.dart';
+import 'package:provider/provider.dart';
 
 class RegisterUserScreen extends StatefulWidget {
   const RegisterUserScreen({super.key});
@@ -31,7 +32,8 @@ class _RegisterUserScreenState extends State<RegisterUserScreen> {
       return;
     }
     // Verifica si el usuario ya existe
-    final exists = await DatabaseHelper.instance.existsUsuario(username);
+    final usuarioProvider = Provider.of<UsuarioProvider>(context, listen: false);
+    final exists = await usuarioProvider.existsUsuario(username);
     if (exists) {
       setState(() {
         _errorMessage = 'El nombre de usuario ya está en uso';
@@ -40,7 +42,7 @@ class _RegisterUserScreenState extends State<RegisterUserScreen> {
       return;
     }
     final usuario = Usuario(name: username, password: password);
-    await DatabaseHelper.instance.insertUsuario(usuario);
+    await usuarioProvider.addUsuario(usuario);
     setState(() {
       _loading = false;
     });

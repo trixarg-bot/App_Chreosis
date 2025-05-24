@@ -5,7 +5,7 @@ import 'package:chreosis_app/db/database_helper.dart';
 import 'home_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
-import 'user_provider.dart';
+import '../providers/usuario_provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -31,7 +31,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (userId != null) {
       final usuario = await DatabaseHelper.instance.getUsuarioById(userId);
       if (usuario != null && mounted) {
-        Provider.of<UserProvider>(context, listen: false).setUsuario(usuario);
+        Provider.of<UsuarioProvider>(context, listen: false).setUsuario(usuario);
       }
       Navigator.pushReplacement(
         context,
@@ -69,7 +69,7 @@ class _LoginScreenState extends State<LoginScreen> {
     await prefs.setInt('user_id', usuario.id!);
     // Guardar usuario en Provider
     if (mounted) {
-      Provider.of<UserProvider>(context, listen: false).setUsuario(usuario);
+      Provider.of<UsuarioProvider>(context, listen: false).setUsuario(usuario);
     }
     Navigator.pushReplacement(
       context,
