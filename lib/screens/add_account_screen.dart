@@ -181,7 +181,17 @@ class _AddAccountScreenState extends State<AddAccountScreen> {
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
                       focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.white)),
                     ),
-                    validator: (value) => value == null || value.isEmpty ? 'Ingrese el nombre' : null,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Ingrese el nombre';
+                      }
+                      // Expresión regular que solo permite letras (incluyendo acentos y ñ)
+                      final RegExp soloLetras = RegExp(r'^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$');
+                      if (!soloLetras.hasMatch(value)) {
+                        return 'Solo se permiten letras';
+                      }
+                      return null;
+                    },
                   ),
                   const SizedBox(height: 18),
                   const Text('Monto inicial', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17, color: Colors.white)),
