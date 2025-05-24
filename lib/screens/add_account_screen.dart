@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
-
 import 'package:provider/provider.dart';
-import 'package:chreosis_app/models/cuenta.dart';
-import 'package:chreosis_app/db/database_helper.dart';
-import 'user_provider.dart';
+import 'package:chreosis_app/providers/cuenta_provider.dart';
+import '../providers/usuario_provider.dart';
 import 'package:chreosis_app/widgets/lista_iconos.dart';
 
 class AddAccountScreen extends StatefulWidget {
-  const AddAccountScreen({Key? key}) : super(key: key);
+  const AddAccountScreen({super.key});
 
   @override
   State<AddAccountScreen> createState() => _AddAccountScreenState();
@@ -60,7 +58,7 @@ class _AddAccountScreenState extends State<AddAccountScreen> {
     _nameController.clear();
     _amountController.clear();
     setState(() {
-      _selectedType = null;
+      _selectedType = '';
       _selectedIcon = Icons.account_balance_wallet_rounded;
     });
   }
@@ -74,7 +72,10 @@ class _AddAccountScreenState extends State<AddAccountScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Paleta
+    //obtener el provider cuenta
+    final cuentaProvider = Provider.of<CuentaProvider>(context);
+    //obtener el provider usuario
+    final userProvider = Provider.of<UsuarioProvider>(context, listen: false);
 
 
     return Scaffold(
@@ -137,7 +138,7 @@ class _AddAccountScreenState extends State<AddAccountScreen> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              amount.isEmpty ? 'monto inicial' : '\$${amount}',
+                              amount.isEmpty ? 'monto inicial' : '\$$amount',
                               style: const TextStyle(
                                 fontSize: 16,
                                 color: Color.fromARGB(255, 153, 147, 147),
@@ -176,7 +177,7 @@ class _AddAccountScreenState extends State<AddAccountScreen> {
                       filled: true,
                       fillColor: Color.fromARGB(255, 134, 133, 133),
                       hintText: 'Ingrese el nombre...',
-                      hintStyle: TextStyle(color: const Color.fromARGB(255, 194, 191, 191), fontWeight: FontWeight.bold),
+                      hintStyle: TextStyle(color: const Color.fromARGB(255, 66, 66, 66), fontWeight: FontWeight.bold),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
                       focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.white)),
                     ),
@@ -194,7 +195,7 @@ class _AddAccountScreenState extends State<AddAccountScreen> {
                       filled: true,
                       fillColor: Color.fromARGB(255, 134, 133, 133),
                       hintText: 'Ingrese el monto...',
-                      hintStyle: TextStyle(color: const Color.fromARGB(255, 194, 191, 191), fontWeight: FontWeight.bold),
+                      hintStyle: TextStyle(color: const Color.fromARGB(255, 66, 66, 66), fontWeight: FontWeight.bold),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
                       focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.white)),
                     ),
@@ -203,16 +204,17 @@ class _AddAccountScreenState extends State<AddAccountScreen> {
                   const SizedBox(height: 18),
                   const Text('Tipo', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17, color: Colors.white)),
                   const SizedBox(height: 4),
-                  DropdownButtonFormField<String>(
+                   DropdownButtonFormField<String>(
                     dropdownColor: Colors.grey[800],
                     value: _selectedType,
                     items: _typeOptions.map((type) => DropdownMenuItem(
                       value: type,
                       child: Text(type, style: const TextStyle(color: Colors.white)),
                     )).toList(),
-                    onChanged: (value) => setState(() => _selectedType = value),
+                    onChanged: (value) => setState(() => _selectedType = value!),
                     decoration: InputDecoration(
                       hintText: 'Seleccione un tipo...',
+                      hintStyle: TextStyle(fontWeight: FontWeight.bold),
                       filled: true,
                       fillColor: Color.fromARGB(255, 134, 133, 133),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
@@ -240,21 +242,14 @@ class _AddAccountScreenState extends State<AddAccountScreen> {
                         child: OutlinedButton(
                           onPressed: () async {
                             if (_formKey.currentState!.validate()) {
-                              final userProvider = Provider.of<UserProvider>(context, listen: false);
-                              final usuario = userProvider.usuario;
-                              if (usuario == null) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('No hay usuario autenticado')),
-                                );
-                                return;
-                              }
-                              final cuenta = Cuenta(
+                              final usuario = userProvider.usuario!;
+                              
+                              await cuentaProvider.agregarCuenta(
                                 userId: usuario.id!,
                                 name: _nameController.text.trim(),
-                                type: _selectedType,
+                                type: _selectedType!,
                                 amount: double.tryParse(_amountController.text.trim()) ?? 0.0,
                               );
-                              await DatabaseHelper.instance.insertCuenta(cuenta);
                               if (mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(content: Text('Cuenta guardada correctamente')),

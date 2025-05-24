@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'login_screen.dart';
-import 'add_category_screen.dart';
-import 'preferences_screen.dart';
-import 'privacy_policy_screen.dart';
+import 'screens/login_screen.dart';
+import 'screens/add_category_screen.dart';
+import 'screens/preferences_screen.dart';
+import 'screens/privacy_policy_screen.dart';
 // import 'create_transaction_screen.dart';
 // import 'db/tests/test_db.dart';
 // import 'home_screen.dart';
@@ -10,9 +10,16 @@ import 'privacy_policy_screen.dart';
 // import 'register_user_screen.dart';
 // import 'page_reportes.dart';
 import 'package:provider/provider.dart';
-import 'user_provider.dart';
+import 'package:chreosis_app/providers/usuario_provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'providers/transaction_provider.dart';
+import 'repositories/transaccion_repository.dart';
+import 'repositories/usuario_repository.dart';
+import 'providers/categoria_provider.dart';
+import 'repositories/categoria_repository.dart';
+import 'repositories/cuenta_repository.dart';
+import 'providers/cuenta_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,7 +28,11 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => UserProvider()),
+        ChangeNotifierProvider(create: (_) => UsuarioProvider(repository: UsuarioRepository())),
+        ChangeNotifierProvider(create: (_) => TransactionProvider(repository: TransaccionRepository(), usuarioRepository: UsuarioRepository(), cuentaRepository: CuentaRepository())),
+        ChangeNotifierProvider(create: (_) => UsuarioProvider(repository: UsuarioRepository())),
+        ChangeNotifierProvider(create: (_) => CategoriaProvider(repository: CategoriaRepository())),
+        ChangeNotifierProvider(create: (_) => CuentaProvider(repository: CuentaRepository())),
       ],
       child: const MyApp(),
     ),
@@ -52,7 +63,7 @@ class MyApp extends StatelessWidget {
       home: const LoginScreen(),
       routes: {
         '/preferences': (context) => const PreferencesScreen(),
-        '/add_category': (context) => const AddCategoryScreen(), // alias para compatibilidad
+        '/add_category': (context) => const AddCategoryScreen(), 
         '/privacy_policy': (context) => const PrivacyPolicyScreen(),
       },
     );

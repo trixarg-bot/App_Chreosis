@@ -5,16 +5,20 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:chreosis_app/models/datos_transaccion.dart';
 import 'package:intl/intl.dart';
+import '../models/categoria.dart';
 
 class GptService {
   final String apiKey = dotenv.env['api_key'] ?? '';
 
 
-  Future<DatosTransaccion> enviarTranscripcion(String transcripcion) async {
+  Future<DatosTransaccion> enviarTranscripcion(String transcripcion, List<Categoria> categoriasUsuario) async {
     const endpoint = 'https://api.openai.com/v1/chat/completions';
     final hoy = DateTime.now();
     final fechaFormateada = DateFormat('dd-MM-yyyy').format(hoy);
     final diaSemana = DateFormat('EEEE', 'es').format(hoy);
+
+    // Crear una lista de nombres de categorías
+    final categoriasDisponibles = categoriasUsuario.map((c) => c.name).toList().join(", ");
 
     final headers = {
       'Content-Type': 'application/json',
@@ -25,6 +29,10 @@ class GptService {
       'model': 'gpt-4o-mini',
       'messages': [
         {'role': 'user', 'content':"""Extrae de este texto: $transcripcion monto, categoria, descripcion, metodo de pago y fecha, tipoTransaccion. La fecha actual es: $fechaFormateada, dia de la semana: $diaSemana.
+        
+        Las categorías disponibles son: $categoriasDisponibles
+        IMPORTANTE: Para la categoría, SOLO debes usar alguna de las categorías disponibles mencionadas arriba. Si ninguna categoría disponible coincide con el contexto de la transcripción, dejar el campo categoría vacío ("").
+        
         En el caso de que no se encuentre una fecha explícita en el texto, debes usar la fecha actual mencionada más arriba. Sin embargo, si el usuario menciona cosas como "ayer", "domingo pasado", "el 16 de este mes", "el viernes", etc., debes calcular restando o sumando dias a la fecha actual mencionada más arriba, devolver la fecha exacta correspondiente, 
         usando como base la fecha actual mencionada más arriba.
         La fecha en la respuesta debe estar siempre en formato DD-MM-YYYY.
@@ -50,10 +58,7 @@ class GptService {
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       final reply = data['choices'][0]['message']['content'];
-      // Extraer solo el JSON de la respuesta (elimina texto adicional si existe)
-      String jsonString = reply;
-      // Decodificar el JSON
-      final Map<String, dynamic> datosMap = jsonDecode(jsonString);
+      final Map<String, dynamic> datosMap = jsonDecode(reply);
       final datos = DatosTransaccion.fromJson(datosMap);
       return datos;
     } else {

@@ -1,7 +1,9 @@
-import 'package:chreosis_app/db/database_helper.dart';
 import 'package:chreosis_app/models/categoria.dart';
 import 'package:chreosis_app/models/transaccion.dart';
-
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:chreosis_app/providers/transaction_provider.dart';
+import 'package:chreosis_app/providers/categoria_provider.dart';
 import 'dart:async';
 
 class CategoriaPorcentaje {
@@ -14,12 +16,15 @@ class CategoriaPorcentaje {
 class ReportesDataHelper {
   /// Obtiene las transacciones filtradas por tipo y periodo para el usuario
   static Future<List<Transaccion>> obtenerTransaccionesFiltradas({
+    required BuildContext context,
     required int userId,
     required String tipo, // 'gastos' o 'ingresos'
     required DateTime desde,
     required DateTime hasta,
   }) async {
-    final transacciones = await DatabaseHelper.instance.getTransacciones(userId: userId);
+    final transactionProvider = Provider.of<TransactionProvider>(context, listen: false);
+      await transactionProvider.cargarTransacciones(userId);
+    final transacciones = transactionProvider.transacciones;
     final tipoFiltrado = tipo == 'gastos' ? 'gasto' : 'ingreso';
     final transaccionesFiltradas = transacciones.where((t) {
       if (t.type?.toLowerCase() != tipoFiltrado) return false;
@@ -35,15 +40,18 @@ class ReportesDataHelper {
 
   /// Obtiene la lista de categorias con su porcentaje de gasto/ingreso en el periodo y tipo seleccionado
   static Future<List<CategoriaPorcentaje>> obtenerPorcentajesCategorias({
+    required BuildContext context,
     required int userId,
     required String tipo, // 'gastos' o 'ingresos'
     required DateTime desde,
     required DateTime hasta,
   }) async {
-    // 1. Obtener todas las categorias del usuario
-    final categorias = await DatabaseHelper.instance.getCategorias(userId: userId);
-    // 2. Obtener todas las transacciones del usuario
-    final transacciones = await DatabaseHelper.instance.getTransacciones(userId: userId);
+    final transactionProvider = Provider.of<TransactionProvider>(context, listen: false);
+      await transactionProvider.cargarTransacciones(userId);
+    final transacciones = transactionProvider.transacciones;
+    final categoriaProvider = Provider.of<CategoriaProvider>(context, listen: false);
+      await categoriaProvider.cargarCategorias(userId);
+    final categorias = categoriaProvider.categorias;
     // 3. Filtrar por tipo y rango de fecha
     final tipoFiltrado = tipo == 'gastos' ? 'gasto' : 'ingreso';
     final transaccionesFiltradas = transacciones.where((t) {

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:provider/provider.dart';
-import 'package:chreosis_app/user_provider.dart';
-import 'package:chreosis_app/page_reportes_helper.dart';
+import 'package:chreosis_app/utils/page_reportes_helper.dart';
 import 'package:chreosis_app/models/transaccion.dart';
 import 'package:chreosis_app/models/categoria.dart';
 import 'package:chreosis_app/db/database_helper.dart';
 import 'package:intl/intl.dart';
+import 'package:chreosis_app/providers/usuario_provider.dart';
 
 
 class Reportes extends StatefulWidget {
@@ -73,9 +73,9 @@ class _ReportesState extends State<Reportes> {
   }
 
   Future<void> _loadCategorias() async {
-    final userId = Provider.of<UserProvider>(context, listen: false).usuario?.id;
+    final userId = Provider.of<UsuarioProvider>(context, listen: false).usuario?.id;
     if (userId == null) return;
-    final categorias = await DatabaseHelper.instance.getCategorias(userId: userId);
+    final categorias = await DatabaseHelper.instance.getCategorias(userId);
     setState(() {
       _categoriasPorId = {for (var c in categorias) c.id!: c};
     });
@@ -84,7 +84,7 @@ class _ReportesState extends State<Reportes> {
   Future<List<CategoriaPorcentaje>>? _futureCategorias;
 
   void _loadData() {
-    final userId = Provider.of<UserProvider>(context, listen: false).usuario?.id;
+    final userId = Provider.of<UsuarioProvider>(context, listen: false).usuario?.id;
     if (userId == null) return;
     final now = DateTime.now();
     DateTime desde;
@@ -101,6 +101,7 @@ class _ReportesState extends State<Reportes> {
     }
     final hasta = DateTime(now.year, now.month, now.day, 23, 59, 59);
     _futureCategorias = ReportesDataHelper.obtenerPorcentajesCategorias(
+      context: context,
       userId: userId,
       tipo: _selectedValue,
       desde: desde,
@@ -292,7 +293,8 @@ class _ReportesState extends State<Reportes> {
             bottom: 0,
             child: FutureBuilder<List<Transaccion>>(
               future: ReportesDataHelper.obtenerTransaccionesFiltradas(
-                userId: Provider.of<UserProvider>(context, listen: false).usuario?.id ?? 0,
+                context: context,
+                userId: Provider.of<UsuarioProvider>(context, listen: false).usuario?.id ?? 0,
                 tipo: _selectedValue,
                 desde: _selectedButton == 0
                     ? DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day)

@@ -28,6 +28,10 @@
 		<string>LaunchScreen</string>
 		<key>UIMainStoryboardFile</key>
 		<string>Main</string>
+		<key>NSMicrophoneUsageDescription</key>
+		<string>Esta aplicación necesita acceso al micrófono para grabar tu voz.</string>
+		<key>NSSpeechRecognitionUsageDescription</key>
+		<string>Esta aplicación necesita acceso al reconocimiento de voz para permitir la entrada de voz.</string>
 		<key>UISupportedInterfaceOrientations</key>
 		<array>
 			<string>UIInterfaceOrientationPortrait</string>
