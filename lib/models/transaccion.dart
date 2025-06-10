@@ -1,8 +1,10 @@
+//TODO: AGREGAR LUGAR Al modelo de transaccion
 class Transaccion {
   final int? id;
   final int userId;
   final int categoryId;
   final int accountId;
+  final String? place;
   final String? date;
   final double amount;
   final String? type;
@@ -15,6 +17,7 @@ class Transaccion {
     required this.userId,
     required this.categoryId,
     required this.accountId,
+    this.place,
     this.date,
     required this.amount,
     this.type,
@@ -28,6 +31,7 @@ class Transaccion {
         userId: map['user_id'],
         categoryId: map['category_id'],
         accountId: map['account_id'],
+        place: map['place'],
         date: map['date'],
         amount: (map['amount'] as num?)?.toDouble() ?? 0.0,
         type: map['type'],
@@ -41,6 +45,7 @@ class Transaccion {
         'user_id': userId,
         'category_id': categoryId,
         'account_id': accountId,
+        'place': place,
         'date': date,
         'amount': amount,
         'type': type,

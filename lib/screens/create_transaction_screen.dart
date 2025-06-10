@@ -358,6 +358,28 @@ class _CreateTransactionScreenState extends State<CreateTransactionScreen> {
                   },
                 ),
                 const SizedBox(height: 18),
+                TextFormField(
+                  style: const TextStyle(color: Colors.white),
+                  maxLines: 1,
+                  decoration: InputDecoration(
+                    labelText: 'Lugar',
+                    prefixIcon: const Icon(
+                      Icons.location_on_rounded,
+                      color: Colors.white,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(
+                        color: const Color.fromARGB(255, 255, 255, 255),
+                      ),
+                    ),
+                    labelStyle: TextStyle(color: Colors.white),
+                  ),
+                ),
+                const SizedBox(height: 18),
                 Consumer<CategoriaProvider>(
                   builder: (context, categoriaProvider, _) {
                     if (categoriaProvider.isLoading) {
