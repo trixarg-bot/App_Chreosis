@@ -28,7 +28,7 @@ class GptService {
     final body = jsonEncode({
       'model': 'gpt-4o-mini',
       'messages': [
-        {'role': 'user', 'content':"""Extrae de este texto: $transcripcion monto, categoria, descripcion, metodo de pago y fecha, tipoTransaccion. La fecha actual es: $fechaFormateada, dia de la semana: $diaSemana.
+        {'role': 'user', 'content':"""Extrae de este texto: $transcripcion monto, categoria, lugar, descripcion, metodo de pago y fecha, tipoTransaccion. La fecha actual es: $fechaFormateada, dia de la semana: $diaSemana.
         
         Las categorías disponibles son: $categoriasDisponibles
         IMPORTANTE: Para la categoría, SOLO debes usar alguna de las categorías disponibles mencionadas arriba. Si ninguna categoría disponible coincide con el contexto de la transcripción, dejar el campo categoría vacío ("").
@@ -43,6 +43,7 @@ class GptService {
           {
             "monto": "",
             "categoria": "",
+            "lugar": "",
             "descripcion": "",
             "metodoPago": "",
             "tipoTransaccion":"",
