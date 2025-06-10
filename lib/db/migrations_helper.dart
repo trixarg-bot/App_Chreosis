@@ -82,5 +82,11 @@ class MigrationHelper {
       ''');
       logger.i('✅ Tabla "categorias" actualizada con icon_code');
     }
+
+    if (oldVersion < 6) {
+      logger.i('🔁 Migración v6: agregar lugar a transacciones');
+      await db.execute('ALTER TABLE transacciones ADD COLUMN place TEXT');
+      logger.i('✅ Tabla "transacciones" actualizada con lugar');
+    }
   }
 }

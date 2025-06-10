@@ -44,7 +44,7 @@ class DatabaseHelper {
     final path = join(dbPath, filePath);
 
     //* Abre la base de datos, y si no existe, ejecuta la función _createDB
-    return await openDatabase(path, version: 5, onCreate: _createDB, onUpgrade: MigrationHelper.onUpgrade,);
+    return await openDatabase(path, version: 6, onCreate: _createDB, onUpgrade: MigrationHelper.onUpgrade,);
   }
 
   //* Esta función se ejecuta SOLO la primera vez que se crea la base de datos
@@ -87,7 +87,7 @@ class DatabaseHelper {
           UNIQUE(user_id, name)
         );
       ''');
-
+    //TODO: AGREGAR LUGAR A LA TABLA DE TRANSACCIONES
     // Crea tabla de transacciones (movimientos financieros)
     await db.execute('''
       CREATE TABLE transacciones (
@@ -95,6 +95,7 @@ class DatabaseHelper {
         user_id INTEGER NOT NULL,
         category_id INTEGER NOT NULL,
         account_id INTEGER NOT NULL,
+        place TEXT,
         date TEXT,
         amount REAL,
         type TEXT,

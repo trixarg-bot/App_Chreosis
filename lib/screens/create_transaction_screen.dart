@@ -35,6 +35,7 @@ class _CreateTransactionScreenState extends State<CreateTransactionScreen> {
       _amountController.text = datos.monto;
       _noteController.text = datos.descripcion;
       _selectedType = datos.tipoTransaccion;
+      _placeController.text = datos.lugar;
       
       // Buscar y seleccionar la categoría si GPT sugirió una
         final categoriaProvider = Provider.of<CategoriaProvider>(context, listen: false);
@@ -64,6 +65,7 @@ class _CreateTransactionScreenState extends State<CreateTransactionScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _noteController = TextEditingController();
+  final TextEditingController _placeController = TextEditingController();
   DateTime _selectedDate = DateTime.now();
   Cuenta? _selectedAccount;
   Categoria? _selectedCategory;
@@ -165,6 +167,7 @@ class _CreateTransactionScreenState extends State<CreateTransactionScreen> {
       userId: usuario.id!,
       accountId: _selectedAccount!.id!,
       categoryId: _selectedCategory!.id!,
+      place: _placeController.text.trim().isEmpty ? null : _placeController.text.trim(),
       date: _selectedDate.toIso8601String(),
       amount: montoGasto,
       type: _selectedType,
@@ -356,6 +359,29 @@ class _CreateTransactionScreenState extends State<CreateTransactionScreen> {
                               c == null ? 'Seleccione una cuenta' : null,
                     );
                   },
+                ),
+                const SizedBox(height: 18),
+                TextFormField(
+                  style: const TextStyle(color: Colors.white),
+                  maxLines: 1,
+                  controller: _placeController,
+                  decoration: InputDecoration(
+                    labelText: 'Lugar',
+                    prefixIcon: const Icon(
+                      Icons.location_on_rounded,
+                      color: Colors.white,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(
+                        color: const Color.fromARGB(255, 255, 255, 255),
+                      ),
+                    ),
+                    labelStyle: TextStyle(color: Colors.white),
+                  ),
                 ),
                 const SizedBox(height: 18),
                 Consumer<CategoriaProvider>(
