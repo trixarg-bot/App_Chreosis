@@ -48,6 +48,7 @@ android/captures/
 android/gradle/
 android/key.properties
 android/local.properties
+android/app/google-services.json
 
 # iOS
 ios/Pods/
@@ -59,6 +60,8 @@ ios/Runner/GeneratedPluginRegistrant.*
 
 #backend
 backend/env
+backend/vast-ascent-443822-d0-4a7c4efb43fd.json
+backend/utils/chreosis-a4492-firebase-adminsdk-fbsvc-2d30c216cd.json
 
 # Env files
 .env
