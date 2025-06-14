@@ -1,7 +1,7 @@
 from typing import Dict, Optional
 from openai import AsyncOpenAI
 from sqlalchemy.orm import Session
-from models import Transaccion, Usuario
+from models import Transaccion, Usuario, Dispositivo
 from datetime import datetime
 import json
 import os
@@ -27,6 +27,7 @@ async def process_email_with_gpt(email_content: str) -> Dict:
         Analiza el siguiente correo electrónico y extrae la siguiente información en formato JSON:
         - Monto: el valor numérico del gasto/ingreso
         - Fecha: la fecha de la transacción
+        - Categoria: Casa
         - Moneda: tipo de moneda en este unico formato: (DOP, USD, EUR, etc.)
         - Lugar: lugar o establecimiento donde se realizó la transacción
         - Status: 'APROBADA' si es una transacción válida, 'RECHAZADA' si no se pudo procesar correctamente
@@ -38,6 +39,7 @@ async def process_email_with_gpt(email_content: str) -> Dict:
         {{
             "Monto": 100.50,
             "Fecha": "2024-03-20",
+            "Categoria": "Alimentos",
             "Moneda": "USD",
             "Lugar": "Supermercado XYZ",
             "Status": "APROBADA"
@@ -55,6 +57,7 @@ async def process_email_with_gpt(email_content: str) -> Dict:
 
         # Extraer y parsear la respuesta JSON
         json_response = json.loads(response.choices[0].message.content)
+        print(json_response)
         return json_response
 
     except Exception as e:
@@ -62,6 +65,7 @@ async def process_email_with_gpt(email_content: str) -> Dict:
         return {
             "Monto": 0,
             "Fecha": datetime.now().strftime("%Y-%m-%d"),
+            "Categoria": "DESCONOCIDO",
             "Moneda": "DESCONOCIDO",
             "Lugar": "ERROR",
             "Status": "RECHAZADA",
@@ -71,7 +75,7 @@ async def process_email_with_gpt(email_content: str) -> Dict:
 async def save_transaction_to_db(
     db: Session,
     transaction_data: Dict,
-    usuario_id: int,
+    dispositivo_id: int,
     category_id: Optional[int] = None
 ) -> bool:
     """
@@ -83,10 +87,16 @@ async def save_transaction_to_db(
             print(f"Transacción no guardada por status: {transaction_data['Status']}")
             return False
 
+        # Obtener el dispositivo para obtener el user_id
+        dispositivo = db.query(Dispositivo).filter(Dispositivo.id == dispositivo_id).first()
+        if not dispositivo:
+            print(f"Dispositivo no encontrado: {dispositivo_id}")
+            return False
+
         # Crear nueva transacción
         nueva_transaccion = Transaccion(
-            user_id=usuario_id,
-            category_id=category_id or 1,  # Categoría por defecto si no se especifica
+            user_id=dispositivo.id,
+            category_id=transaction_data["Categoria"] ,  # Categoría por defecto si no se especifica
             account_id=1,  # Se podría mejorar para determinar la cuenta correcta
             #TODO: revisar si es correcto el formato de la fecha
             date=datetime.strptime(transaction_data["Fecha"], "%Y-%m-%d"),
@@ -98,8 +108,9 @@ async def save_transaction_to_db(
             Tipomoneda=transaction_data["Moneda"]
         )
 
-        db.add(nueva_transaccion)
-        db.commit()
+        #TODO: ahora no se guarda en la base de datos del server, se guarda en la base de datos de la app, por lo que no se necesita hacer commit
+        # db.add(nueva_transaccion)
+        # db.commit()
         return True
 
     except Exception as e:
@@ -110,7 +121,7 @@ async def save_transaction_to_db(
 async def process_and_save_email(
     db: Session,
     email_content: str,
-    usuario_id: int,
+    dispositivo_id: int,
     category_id: Optional[int] = None
 ) -> Dict:
     """
@@ -125,7 +136,7 @@ async def process_and_save_email(
             success = await save_transaction_to_db(
                 db=db,
                 transaction_data=transaction_data,
-                usuario_id=usuario_id,
+                dispositivo_id=dispositivo_id,
                 category_id=category_id
             )
             if not success:

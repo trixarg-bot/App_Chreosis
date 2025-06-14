@@ -11,7 +11,6 @@ class Usuario(Base):
     phone_number = Column(String)
     password = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
-    gmail_token = relationship("GmailToken", back_populates="usuario", uselist=False)
 
 class Cuenta(Base):
     __tablename__ = "cuentas"
@@ -48,7 +47,7 @@ class Transaccion(Base):
 class GmailToken(Base):
     __tablename__ = "gmail_tokens"
     id = Column(Integer, primary_key=True, index=True)
-    usuario_id = Column(Integer, ForeignKey("usuarios.id"), unique=True, nullable=False)
+    dispositivo_id = Column(Integer, ForeignKey("dispositivos.id"), unique=True, nullable=False)
     access_token = Column(String, nullable=False)
     refresh_token = Column(String, nullable=False)
     token_uri = Column(String, nullable=False)
@@ -59,7 +58,7 @@ class GmailToken(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     #QUE ES ESTO DE RELATIONSHIP?
-    usuario = relationship("Usuario", back_populates="gmail_token")
+    dispositivo = relationship("Dispositivo", back_populates="gmail_token")
 
 class Dispositivo(Base):
     __tablename__ = "dispositivos"
@@ -68,3 +67,4 @@ class Dispositivo(Base):
     nombre_dispositivo = Column(String)
     ultimo_acceso = Column(DateTime)
     created_at = Column(DateTime, default=datetime.utcnow)
+    gmail_token = relationship("GmailToken", back_populates="dispositivo", uselist=False)

@@ -20,11 +20,16 @@ import 'providers/categoria_provider.dart';
 import 'repositories/categoria_repository.dart';
 import 'repositories/cuenta_repository.dart';
 import 'providers/cuenta_provider.dart';
+import 'services/firebase_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load();
   await initializeDateFormatting('es', null);
+  
+  // Inicializar Firebase
+  await FirebaseService.initialize();
+  
   runApp(
     MultiProvider(
       providers: [
@@ -46,6 +51,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: FirebaseService.navigatorKey,
       debugShowCheckedModeBanner: false,
 
       title: 'Chreosis',
