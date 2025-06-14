@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/usuario_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:chreosis_app/services/firebase_service.dart';
+import 'package:chreosis_app/db/database_helper.dart';
 
 class PreferencesScreen extends StatelessWidget {
   const PreferencesScreen({Key? key}) : super(key: key);
@@ -27,6 +29,13 @@ class PreferencesScreen extends StatelessWidget {
             titleColor: Colors.white,
             subtitle: 'Personaliza tus categorías',
             onTap: () => Navigator.pushNamed(context, '/add_category'),
+          ),
+          _SettingsTile(
+            icon: Icons.email_rounded,
+            title: 'Conectar correo',
+            titleColor: Colors.white,
+            subtitle: 'Sincroniza tus notificaciones de consumo',
+            onTap: () => Navigator.pushNamed(context, '/email_setup'),
           ),
           _SectionTitle('Personalización'),
           _SettingsTile(
@@ -97,7 +106,71 @@ class PreferencesScreen extends StatelessWidget {
               Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
             },
           ),
+          _buildSection(
+            'Conectar Correo',
+            [
+              _buildEmailConnectButton(context),
+            ],
+          ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildSection(String title, List<Widget> children) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Text(
+            title,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        ...children,
+        const Divider(),
+      ],
+    );
+  }
+
+  Widget _buildEmailConnectButton(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: ElevatedButton(
+        onPressed: () async {
+          try {
+            await FirebaseService.connectGmailAndRegisterDevice();
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Por favor, completa la autenticación en el navegador'),
+                duration: Duration(seconds: 5),
+              ),
+            );
+          } catch (e) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Error: $e'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        },
+        style: ElevatedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          backgroundColor: Colors.grey[800],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: const [
+            Icon(Icons.email, color: Colors.white),
+            SizedBox(width: 8),
+            Text('Conectar Gmail', style: TextStyle(color: Colors.white)),
+          ],
+        ),
       ),
     );
   }
