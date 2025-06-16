@@ -9,6 +9,7 @@ import '../models/transaccion.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
+import '../db/database_helper.dart';
 import 'package:intl/intl.dart';
 import '../utils/gpt_service.dart';
 import '../providers/transaction_provider.dart';

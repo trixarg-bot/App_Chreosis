@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from database import engine, Base, get_db
-from routers import usuario, cuenta, categoria, transaccion
+from routers import usuario, cuenta, categoria, transaccion, serviceEmail, devices
 
 # Crear la base de datos si no existe
 # Base.metadata.create_all(bind=engine)
@@ -23,5 +23,7 @@ app.include_router(usuario.router)
 app.include_router(cuenta.router)
 app.include_router(categoria.router)
 app.include_router(transaccion.router)
+app.include_router(serviceEmail.router)
+app.include_router(devices.router)
 
 

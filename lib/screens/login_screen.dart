@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'register_user_screen.dart';
-import 'package:rive/rive.dart' as rive ;
+// import 'package:rive/rive.dart' as rive ;
 import 'package:chreosis_app/db/database_helper.dart';
 import 'home_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -258,13 +258,13 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 36),
                 // Animación decorativa
-                SizedBox(
-                  height: 100,
-                  child: rive.RiveAnimation.asset(
-                    'assets/Logo.riv',
-                    fit: BoxFit.contain,
-                  ),
-                ),
+                // SizedBox(
+                //   height: 100,
+                //   child: rive.RiveAnimation.asset(
+                //     'assets/Logo.riv',
+                //     fit: BoxFit.contain,
+                //   ),
+                // ),
               ],
             ),
           ),

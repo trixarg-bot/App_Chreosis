@@ -136,6 +136,11 @@ class DatabaseHelper {
     return null;
   }
 
+  Future<int> updateUsuario(Usuario usuario) async {
+    final db = await instance.database;
+    return await db.update('usuarios', usuario.toMap(), where: 'id = ?',whereArgs: [usuario.id],);
+  }
+
   // Verificar si existe usuario (para registro/login)
   Future<bool> existsUsuario(String name) async {
     final db = await instance.database;

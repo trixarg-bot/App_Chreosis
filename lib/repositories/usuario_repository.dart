@@ -13,9 +13,13 @@ class UsuarioRepository {
     await DatabaseHelper.instance.getUsuarioByName(name);
   }
 
+  Future<void> actualizarUsuario(Usuario usuario) async {
+    await DatabaseHelper.instance.updateUsuario(usuario);
+  }
+
   // Elimina un usuario
-  Future<void> getUsuarioById(int id) async {
-    await DatabaseHelper.instance.getUsuarioById(id);
+  Future<Usuario?> getUsuarioById(int id) async {
+    return await DatabaseHelper.instance.getUsuarioById(id);
   }
 
   // Obtiene el saldo total de un usuario
