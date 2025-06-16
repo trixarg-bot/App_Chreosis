@@ -1,7 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:chreosis_app/db/database_helper.dart';
+
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -12,6 +12,7 @@ import 'package:chreosis_app/providers/categoria_provider.dart';
 import 'package:chreosis_app/providers/cuenta_provider.dart';
 import 'package:chreosis_app/providers/transaction_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:chreosis_app/models/categoria.dart';
 
 class FirebaseService {
   static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -198,25 +199,50 @@ class FirebaseService {
         listen: false,
       );
       await categoriaProvider.cargarCategorias(userId);
-      
-      final categoria = categoriaProvider.categorias.firstWhere(
-        (cat) => cat.name.toLowerCase() == transactionData['categoria'].toLowerCase(),
-        orElse: () => throw Exception('No se encontró la categoría: ${transactionData['categoria']}'),
-      );
-      
-      // Obtener la cuenta por defecto usando el CuentaProvider
+
+      // Buscar la categoría por nombre
+      Categoria categoria;
+      try {
+        categoria = categoriaProvider.categorias.firstWhere(
+          (cat) =>
+              cat.name.toLowerCase() ==
+              transactionData['categoria'].toLowerCase(),
+        );
+      } catch (e) {
+        // Si no se encuentra la categoría, buscar o crear "Sin categorizar"
+        try {
+          categoria = categoriaProvider.categorias.firstWhere(
+            (cat) => cat.name.toLowerCase() == 'sin categorizar',
+          );
+        } catch (e) {
+          // Si no existe "Sin categorizar", crearla usando el provider
+          await categoriaProvider.insertCategoria(
+            userId: userId,
+            name: 'Sin categorizar',
+            type: 'indefinido',
+            iconCode: Icons.help_outline.codePoint,
+          );
+          // Recargar las categorías para obtener la nueva
+          await categoriaProvider.cargarCategorias(userId);
+          categoria = categoriaProvider.categorias.firstWhere(
+            (cat) => cat.name.toLowerCase() == 'sin categorizar',
+          );
+        }
+      }
+
+      // Obtener la cuenta 6por defecto usando el CuentaProvider
       final cuentaProvider = Provider.of<CuentaProvider>(
         navigatorKey.currentContext!,
         listen: false,
       );
       await cuentaProvider.cargarCuentas(userId);
-      
+
       if (cuentaProvider.cuentas.isEmpty) {
         throw Exception('No se encontró ninguna cuenta para el usuario');
       }
-      
+
       final cuenta = cuentaProvider.cuentas.first;
-      
+
       // Crear la transacción
       final transaccion = Transaccion(
         userId: userId,
@@ -228,13 +254,13 @@ class FirebaseService {
         note: transactionData['lugar'],
         createdAt: DateTime.now().toIso8601String(),
       );
-      
+
       // Guardar la transacción usando el TransactionProvider
       final transactionProvider = Provider.of<TransactionProvider>(
         navigatorKey.currentContext!,
         listen: false,
       );
-      
+
       await transactionProvider.agregarTransaccion(transaccion);
       await Provider.of<CuentaProvider>(
         navigatorKey.currentContext!,
@@ -313,9 +339,7 @@ class FirebaseService {
       }
 
       // Iniciar el proceso de autenticación de Gmail
-      final response = await http.get(
-            Uri.parse('$_baseUrl/gmail/login'),
-        );
+      final response = await http.get(Uri.parse('$_baseUrl/gmail/login'));
 
         if (response.statusCode == 200) {
             final data = jsonDecode(response.body);

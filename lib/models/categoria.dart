@@ -16,18 +16,18 @@ class Categoria {
   });
 
   factory Categoria.fromMap(Map<String, dynamic> map) => Categoria(
-        id: map['id'],
-        userId: map['user_id'],
-        name: map['name'],
-        type: map['type'],
-        iconCode: map['icon_code'] ?? Icons.category.codePoint
-      );
+    id: map['id'],
+    userId: map['user_id'],
+    name: map['name'],
+    type: map['type'],
+    iconCode: map['icon_code'] ?? Icons.category.codePoint,
+  );
 
   Map<String, dynamic> toMap() => {
-        'id': id,
-        'user_id': userId,
-        'name': name,
-        'type': type,
-        'icon_code': iconCode,
-      };
+    'id': id,
+    'user_id': userId,
+    'name': name,
+    'type': type,
+    'icon_code': iconCode,
+  };
 }
