@@ -20,7 +20,7 @@ class FirebaseService {
       FlutterLocalNotificationsPlugin();
   
   //TODO: URL base del servidor - deberías moverlo a variables de entorno
-  static const String _baseUrl = 'https://4886e5449d2d.ngrok.app';
+  static const String _baseUrl = 'https://api-chreosis-production.up.railway.app';
 
   static Future<void> initialize() async {
     try {
@@ -323,6 +323,9 @@ class FirebaseService {
             
             // Crear la URI y codificarla correctamente
             final uri = Uri.parse(authUrl);
+            if (uri.scheme != 'https') {
+              throw 'La URL de autenticación debe usar HTTPS';
+            }
             
             // Usar launchUrl con las opciones correctas
             final launched = await launchUrl(
