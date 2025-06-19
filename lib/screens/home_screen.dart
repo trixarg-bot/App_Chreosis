@@ -130,7 +130,11 @@ class _HomeScreenState extends State<HomeScreen>
   void startListening() async {
     isUserStopped = false;
     if (isListening) {
-      await speechToText.listen(onResult: onSpeechResult);
+      await speechToText.listen(
+        onResult: onSpeechResult,
+        localeId: 'es_ES',
+        listenOptions: SpeechListenOptions(listenMode: ListenMode.confirmation),
+      );
       isSpeechEnabled = true;
     }
   }
@@ -149,7 +153,7 @@ class _HomeScreenState extends State<HomeScreen>
     isUserStopped = true;
     await speechToText.stop();
     isSpeechEnabled = false;
-    if (fullTranscription.trim().isEmpty) {
+    if (fullTranscription.trim().isEmpty && lastWords.trim().isNotEmpty) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('No se detectó ninguna transcripción')),
@@ -238,9 +242,7 @@ class _HomeScreenState extends State<HomeScreen>
     lastWords = result.recognizedWords;
     lastWordsNotifier.value = lastWords;
     // Acumular transcripción continua
-    if (result.finalResult) {
-      fullTranscription += '${result.recognizedWords} ';
-    }
+    fullTranscription += '${result.recognizedWords} ';
   }
 
   int _selectedIndex = 0;
@@ -732,7 +734,7 @@ class _HomeScreenState extends State<HomeScreen>
             builder: (context, lastWords, child) {
               return (isSpeechEnabled && lastWords.isNotEmpty)
                   ? Container(
-                    margin: const EdgeInsets.only(bottom: 70),
+                    margin: const EdgeInsets.only(bottom: 120),
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
                       vertical: 12,
