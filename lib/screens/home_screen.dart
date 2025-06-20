@@ -19,6 +19,7 @@ import '../models/categoria.dart';
 import '../widgets/animated_expense_list.dart';
 import '../widgets/animate_expense_card.dart';
 import '../providers/cuenta_provider.dart';
+import 'info_transaction_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -664,6 +665,17 @@ class _HomeScreenState extends State<HomeScreen>
                                         : const Color(0xFFD32F2F),
                               ),
                               index: index,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder:
+                                        (context) => InfoTransactionScreen(
+                                          transaccion: transaccion,
+                                        ),
+                                  ),
+                                );
+                              },
                             ),
                           );
                         },

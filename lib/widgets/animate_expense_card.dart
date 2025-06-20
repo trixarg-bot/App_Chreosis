@@ -2,14 +2,15 @@ import 'expense_card.dart';
 import 'package:flutter/material.dart';
 import '../screens/home_screen.dart';
 
-
 class AnimatedExpenseCard extends StatefulWidget {
   final ExpenseCardData expense;
   final int index;
+  final VoidCallback? onTap;
 
   const AnimatedExpenseCard({
     required this.expense,
     required this.index,
+    this.onTap,
   });
 
   @override
@@ -37,12 +38,15 @@ class AnimatedExpenseCardState extends State<AnimatedExpenseCard> {
       opacity: _opacity,
       duration: const Duration(milliseconds: 600),
       curve: Curves.easeInOut,
-      child: ExpenseCardBase(
-        icon: widget.expense.icon,
-        category: widget.expense.category,
-        amount: widget.expense.amount,
-        date: widget.expense.date,
-        amountColor: widget.expense.color,
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: ExpenseCardBase(
+          icon: widget.expense.icon,
+          category: widget.expense.category,
+          amount: widget.expense.amount,
+          date: widget.expense.date,
+          amountColor: widget.expense.color,
+        ),
       ),
     );
   }
