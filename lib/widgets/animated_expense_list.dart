@@ -5,7 +5,7 @@ import 'package:chreosis_app/models/categoria.dart';
 import 'package:intl/intl.dart';
 import '../providers/transaction_provider.dart';
 import 'package:provider/provider.dart';
-
+import '../screens/info_transaction_screen.dart';
 
 class AnimatedExpenseListState extends State<AnimatedExpenseList> {
   double _opacity = 0.0;
@@ -127,12 +127,22 @@ class AnimatedExpenseListState extends State<AnimatedExpenseList> {
                 print('Error al eliminar: $e');
               }
             },
-            child: ExpenseCardBase(
-              icon: icon,
-              category: nombreCategoria,
-              amount: amountStr,
-              date: formattedDate,
-              amountColor: amountColor,
+            child: GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => InfoTransactionScreen(transaccion: t),
+                  ),
+                );
+              },
+              child: ExpenseCardBase(
+                icon: icon,
+                category: nombreCategoria,
+                amount: amountStr,
+                date: formattedDate,
+                amountColor: amountColor,
+              ),
             ),
           );
         },
