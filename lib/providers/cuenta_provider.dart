@@ -18,13 +18,14 @@ class CuentaProvider extends ChangeNotifier {
   }
 
   //agregar cuenta
-  Future<void> agregarCuenta({required int userId, required String name, required String type, required double amount,}) async {
+  Future<void> agregarCuenta({required int userId, required String name, required String type, required double amount, required String moneda}) async {
     
     final cuenta = Cuenta(
       userId: userId,
       name: name,
       type: type,
       amount: amount,
+      moneda: moneda
     );
     await repository.agregarCuenta(cuenta);
     await cargarCuentas(userId);

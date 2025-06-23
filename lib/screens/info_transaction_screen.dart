@@ -61,6 +61,7 @@ class _InfoTransactionScreenState extends State<InfoTransactionScreen> {
                     name: selectedAccountId.toString(),
                     type: '',
                     amount: 0,
+                    moneda: widget.transaccion.moneda,
                   ),
             )
             .name;
@@ -445,6 +446,9 @@ class _InfoTransactionScreenState extends State<InfoTransactionScreen> {
                           type: type,
                           note: note,
                           createdAt: widget.transaccion.createdAt,
+                          moneda: widget.transaccion.moneda,
+                          conversion: widget.transaccion.conversion,
+                          montoConvertido: widget.transaccion.montoConvertido,
                         );
                         await Provider.of<TransactionProvider>(
                           context,

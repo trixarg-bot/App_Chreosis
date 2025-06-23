@@ -71,6 +71,8 @@ class _CreateTransactionScreenState extends State<CreateTransactionScreen> {
   Categoria? _selectedCategory;
   String _selectedType = 'gasto';
   bool _loading = false;
+  String? _transactionCurrency;
+  final List<String> _currencyOptions = ['DOP', 'USD', 'EUR'];
 
   Color get emerald => const Color(0xFF00BFA5);
   Color get emerald2 => const Color.fromARGB(255, 29, 29, 29);
@@ -85,9 +87,15 @@ class _CreateTransactionScreenState extends State<CreateTransactionScreen> {
     if (usuario != null) {
       final cuentaProvider = Provider.of<CuentaProvider>(
         context,
-        listen: false, 
+        listen: false,
       );
       await cuentaProvider.cargarCuentas(usuario.id!);
+      // Si hay una cuenta seleccionada, inicializamos la moneda de la transacción.
+      if (_selectedAccount != null) {
+        setState(() {
+          _transactionCurrency = _selectedAccount!.moneda;
+        });
+      }
     }
     return [];
   }
@@ -173,9 +181,12 @@ class _CreateTransactionScreenState extends State<CreateTransactionScreen> {
       type: _selectedType,
       note: _noteController.text.trim(),
       createdAt: DateTime.now().toIso8601String(),
+      moneda: _transactionCurrency!,
+      conversion: _transactionCurrency != _selectedAccount!.moneda,
+      montoConvertido: null, // El provider se encargará de esto
     );
 
-    Provider.of<TransactionProvider>(
+    await Provider.of<TransactionProvider>(
       context,
       listen: false,
     ).agregarTransaccion(transaccion);
@@ -338,7 +349,12 @@ class _CreateTransactionScreenState extends State<CreateTransactionScreen> {
                               )
                               .toList(),
                       onChanged:
-                          (cuenta) => setState(() => _selectedAccount = cuenta),
+                          (cuenta) => setState(() {
+                            _selectedAccount = cuenta;
+                            _transactionCurrency =
+                                cuenta
+                                    ?.moneda; // Actualiza la moneda por defecto para la transaccion
+                          }),
                       decoration: InputDecoration(
                         labelText: 'Cuenta',
                         prefixIcon: const Icon(
@@ -483,6 +499,40 @@ class _CreateTransactionScreenState extends State<CreateTransactionScreen> {
                     ),
                     labelStyle: TextStyle(color: Colors.white),
                   ),
+                ),
+                const SizedBox(height: 18),
+                // Selector de Moneda de la Transacción
+                DropdownButtonFormField<String>(
+                  style: const TextStyle(color: Colors.white, fontSize: 16),
+                  dropdownColor: Colors.grey[800],
+                  value: _transactionCurrency,
+                  items:
+                      _currencyOptions
+                          .map(
+                            (moneda) => DropdownMenuItem(
+                              value: moneda,
+                              child: Text(
+                                moneda,
+                                style: const TextStyle(color: Colors.white),
+                              ),
+                            ),
+                          )
+                          .toList(),
+                  onChanged:
+                      (moneda) => setState(() => _transactionCurrency = moneda),
+                  decoration: InputDecoration(
+                    labelText: 'Moneda de la transacción',
+                    prefixIcon: const Icon(Icons.money, color: Colors.white),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: const BorderSide(color: Colors.white),
+                    ),
+                    labelStyle: const TextStyle(color: Colors.white),
+                  ),
+                  validator: (m) => m == null ? 'Seleccione una moneda' : null,
                 ),
                 const SizedBox(height: 30),
                 Row(

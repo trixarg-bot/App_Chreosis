@@ -253,6 +253,8 @@ class FirebaseService {
         type: 'gasto', // Por defecto es un gasto
         note: transactionData['lugar'],
         createdAt: DateTime.now().toIso8601String(),
+        moneda: transactionData['moneda'],
+        conversion: transactionData['isconversion']
       );
 
       // Guardar la transacción usando el TransactionProvider
