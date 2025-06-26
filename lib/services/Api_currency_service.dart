@@ -272,4 +272,14 @@ class ApiCurrencyService {
     final symbol = symbols[currencyCode] ?? currencyCode;
     return '$symbol${amount.toStringAsFixed(2)}';
   }
+
+  /// Obtiene la tasa de conversión entre dos monedas
+  Future<double?> getTasaConversion({
+    required String fromCurrency,
+    required String toCurrency,
+  }) async {
+    if (fromCurrency == toCurrency) return 1.0;
+    final rates = await getExchangeRates(fromCurrency);
+    return rates[toCurrency];
+  }
 }

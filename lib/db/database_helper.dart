@@ -16,6 +16,7 @@ class DatabaseHelper {
     final db = await instance.database;
     await db.delete('transacciones');
   }
+
   //! --- FIN SOLO DESARROLLO ---
   // Crea una única instancia de la clase (patrón Singleton)
   static final DatabaseHelper instance = DatabaseHelper._init();
@@ -89,7 +90,7 @@ class DatabaseHelper {
           UNIQUE(user_id, name)
         );
       ''');
-    //TODO: AGREGAR LUGAR A LA TABLA DE TRANSACCIONES
+
     // Crea tabla de transacciones (movimientos financieros)
     await db.execute('''
       CREATE TABLE transacciones (
@@ -107,6 +108,7 @@ class DatabaseHelper {
         moneda TEXT NOT NULL,
         conversion INTEGER NOT NULL DEFAULT 0,
         monto_convertido REAL,
+        tasa_conversion REAL,
         FOREIGN KEY (user_id) REFERENCES usuarios (id),
         FOREIGN KEY (category_id) REFERENCES categorias (id),
         FOREIGN KEY (account_id) REFERENCES cuentas (id)

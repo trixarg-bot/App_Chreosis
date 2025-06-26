@@ -1,4 +1,4 @@
-import 'package:chreosis_app/services/api_currency_service.dart';
+import 'package:chreosis_app/services/Api_currency_service.dart';
 import 'package:flutter/material.dart';
 import '../repositories/transaccion_repository.dart';
 import '../models/transaccion.dart';
@@ -45,6 +45,11 @@ class TransactionProvider extends ChangeNotifier {
           amount: transaccion.amount,
         );
 
+        final tasaConversion = await currencyService.getTasaConversion(
+          fromCurrency: transaccion.moneda,
+          toCurrency: cuenta.moneda,
+        );
+
         if (tasaCambio != null) {
           // 3. El monto afectado es el resultado de la conversión
           montoAfectado = tasaCambio;
@@ -52,6 +57,7 @@ class TransactionProvider extends ChangeNotifier {
           // 4. Actualizar el objeto Transaccion con el monto convertido
           transaccionFinal = transaccion.copyWith(
             montoConvertido: montoAfectado,
+            tasaConversion: tasaConversion,
           );
         } else {
           // Manejar el caso de error donde no se pudo obtener la tasa

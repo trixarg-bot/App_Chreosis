@@ -14,6 +14,7 @@ class Transaccion {
   final String moneda; // Código de moneda de la transacción
   final bool conversion; // Indica si hubo conversión de moneda
   final double? montoConvertido; // Monto convertido si aplica
+  final double? tasaConversion; // Tasa de conversión usada si aplica
 
   Transaccion({
     this.id,
@@ -30,6 +31,7 @@ class Transaccion {
     required this.moneda,
     required this.conversion,
     this.montoConvertido,
+    this.tasaConversion,
   });
 
   factory Transaccion.fromMap(Map<String, dynamic> map) => Transaccion(
@@ -47,6 +49,7 @@ class Transaccion {
     moneda: map['moneda'] ?? 'USD',
     conversion: map['conversion'] == 1 || map['conversion'] == true,
     montoConvertido: (map['monto_convertido'] as num?)?.toDouble(),
+    tasaConversion: (map['tasa_conversion'] as num?)?.toDouble(),
   );
 
   Map<String, dynamic> toMap() => {
@@ -64,6 +67,7 @@ class Transaccion {
     'moneda': moneda,
     'conversion': conversion ? 1 : 0,
     'monto_convertido': montoConvertido,
+    'tasa_conversion': tasaConversion,
   };
 
   Transaccion copyWith({
@@ -81,6 +85,7 @@ class Transaccion {
     String? moneda,
     bool? conversion,
     double? montoConvertido,
+    double? tasaConversion,
   }) {
     return Transaccion(
       id: id ?? this.id,
@@ -97,6 +102,7 @@ class Transaccion {
       moneda: moneda ?? this.moneda,
       conversion: conversion ?? this.conversion,
       montoConvertido: montoConvertido ?? this.montoConvertido,
+      tasaConversion: tasaConversion ?? this.tasaConversion,
     );
   }
 }

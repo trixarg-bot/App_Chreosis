@@ -184,6 +184,7 @@ class _CreateTransactionScreenState extends State<CreateTransactionScreen> {
       moneda: _transactionCurrency!,
       conversion: _transactionCurrency != _selectedAccount!.moneda,
       montoConvertido: null, // El provider se encargará de esto
+      tasaConversion: null, // El provider se encargará de esto
     );
 
     await Provider.of<TransactionProvider>(

@@ -21,7 +21,7 @@ import 'repositories/categoria_repository.dart';
 import 'repositories/cuenta_repository.dart';
 import 'providers/cuenta_provider.dart';
 import 'services/firebase_service.dart';
-import 'services/api_currency_service.dart';
+import 'services/Api_currency_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
