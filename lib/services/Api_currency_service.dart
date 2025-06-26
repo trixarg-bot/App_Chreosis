@@ -6,15 +6,16 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 
 class ApiCurrencyService {
   static const String _baseUrl = 'https://v6.exchangerate-api.com/v6';
-  static const String _cacheKey = 'currency_rates_cache';
+
   static const String _cacheTimestampKey = 'currency_rates_timestamp';
-  static const Duration _cacheValidDuration = Duration(hours: 1);
+  static const Duration _cacheValidDuration = Duration(hours: 24);
 
   // Obtener la API key desde variables de entorno
   String get _apiKey => dotenv.env['ExchangeRateAPI'] ?? '';
 
   /// Obtiene las tasas de cambio desde la API o cache
   Future<Map<String, double>> getExchangeRates(String baseCurrency) async {
+    final String currencyCodeCache = 'currency_rates_cache_$baseCurrency'; //codigo para definir la tasa de cambio de una moneda en la cache
     try {
       // Verificar conectividad (saltar en tests)
       if (!_isTestEnvironment() && !await _hasInternetConnection()) {
@@ -22,7 +23,7 @@ class ApiCurrencyService {
       }
 
       // Verificar si tenemos cache válido
-      final cachedRates = await _getCachedRates();
+      final cachedRates = await _getCachedRates(currencyCodeCache);
       if (cachedRates != null) {
         return cachedRates;
       }
@@ -31,12 +32,12 @@ class ApiCurrencyService {
       final rates = await _fetchRatesFromAPI(baseCurrency);
 
       // Guardar en cache
-      await _saveRatesToCache(rates);
+      await _saveRatesToCache(rates, currencyCodeCache);
 
       return rates;
     } catch (e) {
       // Si falla la API, intentar usar cache expirado como fallback
-      final cachedRates = await _getCachedRates(ignoreExpiration: true);
+      final cachedRates = await _getCachedRates(currencyCodeCache, ignoreExpiration: true);
       if (cachedRates != null) {
         return cachedRates;
       }
@@ -107,13 +108,13 @@ class ApiCurrencyService {
   }
 
   /// Obtiene tasas de cache
-  Future<Map<String, double>?> _getCachedRates({
+  Future<Map<String, double>?> _getCachedRates(String currencyCode,{
     bool ignoreExpiration = false,
   }) async {
     try {
       final prefs = await SharedPreferences.getInstance();
 
-      final ratesJson = prefs.getString(_cacheKey);
+      final ratesJson = prefs.getString(currencyCode);
       final timestampString = prefs.getString(_cacheTimestampKey);
 
       if (ratesJson == null || timestampString == null) {
@@ -139,11 +140,11 @@ class ApiCurrencyService {
   }
 
   /// Guarda tasas en cache
-  Future<void> _saveRatesToCache(Map<String, double> rates) async {
+  Future<void> _saveRatesToCache(Map<String, double> rates, String currencyCode) async {
     try {
       final prefs = await SharedPreferences.getInstance();
 
-      await prefs.setString(_cacheKey, json.encode(rates));
+      await prefs.setString(currencyCode, json.encode(rates));
       await prefs.setString(
         _cacheTimestampKey,
         DateTime.now().toIso8601String(),
@@ -155,10 +156,10 @@ class ApiCurrencyService {
   }
 
   /// Limpia el cache de tasas
-  Future<void> clearCache() async {
+  Future<void> clearCache(String currencyCodeCache) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.remove(_cacheKey);
+      await prefs.remove(currencyCodeCache);
       await prefs.remove(_cacheTimestampKey);
     } catch (e) {
       print('Error al limpiar cache: $e');
@@ -166,12 +167,12 @@ class ApiCurrencyService {
   }
 
   /// Obtiene información sobre el estado del cache
-  Future<Map<String, dynamic>> getCacheInfo() async {
+  Future<Map<String, dynamic>> getCacheInfo(String currencyCodeCache) async {
     try {
       final prefs = await SharedPreferences.getInstance();
 
       final timestampString = prefs.getString(_cacheTimestampKey);
-      final hasRates = prefs.containsKey(_cacheKey);
+      final hasRates = prefs.containsKey(currencyCodeCache);
 
       if (timestampString == null || !hasRates) {
         return {
