@@ -50,7 +50,8 @@ class _InfoTransactionScreenState extends State<InfoTransactionScreen> {
     final fecha =
         '${selectedDate.day.toString().padLeft(2, '0')}/${selectedDate.month.toString().padLeft(2, '0')}/${selectedDate.year}';
     final cuentas = Provider.of<CuentaProvider>(context).cuentas;
-    final categorias = Provider.of<CategoriaProvider>(context).categorias;
+    final categoriaProvider = Provider.of<CategoriaProvider>(context);
+    final categorias = categoriaProvider.getTodasLasCategorias();
     final cuenta = cuentas.firstWhereOrNull(
       (c) => c.id == widget.transaccion.accountId,
     );
@@ -65,19 +66,8 @@ class _InfoTransactionScreenState extends State<InfoTransactionScreen> {
     }
 
     final categoria =
-        categorias
-            .firstWhere(
-              (cat) => cat.id == selectedCategoryId,
-              orElse:
-                  () => Categoria(
-                    id: -1,
-                    userId: 0,
-                    name: selectedCategoryId.toString(),
-                    type: '',
-                    iconCode: 0,
-                  ),
-            )
-            .name;
+        categoriaProvider.getCategoriaById(selectedCategoryId)?.name ??
+        'Sin categoría';
     final monedaDestino = cuenta.moneda;
 
     return Scaffold(
