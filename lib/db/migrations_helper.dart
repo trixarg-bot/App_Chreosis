@@ -1,9 +1,12 @@
-
 import 'package:sqflite/sqflite.dart';
 import 'package:chreosis_app/utils/app_loger.dart';
 
 class MigrationHelper {
-  static Future<void> onUpgrade(Database db, int oldVersion, int newVersion) async {
+  static Future<void> onUpgrade(
+    Database db,
+    int oldVersion,
+    int newVersion,
+  ) async {
     logger.w('🚧 Iniciando migración de BD: v$oldVersion ➡️ v$newVersion');
 
     if (oldVersion < 2) {
@@ -58,9 +61,10 @@ class MigrationHelper {
       logger.i('✅ Tabla "cuentas" actualizada con UNIQUE(user_id, name)');
     }
 
-
     if (oldVersion < 4) {
-      logger.i('🔁 Migración v4: quitan la restriccion NOT NULL de Email en usuarios');
+      logger.i(
+        '🔁 Migración v4: quitan la restriccion NOT NULL de Email en usuarios',
+      );
       await db.execute('DROP TABLE usuarios');
       await db.execute('''
         CREATE TABLE usuarios (
@@ -87,6 +91,56 @@ class MigrationHelper {
       logger.i('🔁 Migración v6: agregar lugar a transacciones');
       await db.execute('ALTER TABLE transacciones ADD COLUMN place TEXT');
       logger.i('✅ Tabla "transacciones" actualizada con lugar');
+    }
+
+    if (oldVersion < 7) {
+      logger.i(
+        '🔁 Migración v7: Agregando campos de moneda y la tabla de configuración',
+      );
+
+      // 1. Añadir columna 'moneda' a la tabla 'cuentas'
+      // Se añade con un valor por defecto para las filas existentes.
+      await db.execute(
+        "ALTER TABLE cuentas ADD COLUMN moneda TEXT NOT NULL DEFAULT 'DOP'",
+      );
+      logger.i('✅ Columna "moneda" agregada a la tabla "cuentas"');
+
+      // 2. Añadir columnas a la tabla 'transacciones'
+      await db.execute(
+        "ALTER TABLE transacciones ADD COLUMN moneda TEXT NOT NULL DEFAULT 'DOP'",
+      );
+      await db.execute(
+        "ALTER TABLE transacciones ADD COLUMN conversion INTEGER NOT NULL DEFAULT 0",
+      );
+      await db.execute(
+        "ALTER TABLE transacciones ADD COLUMN monto_convertido REAL",
+      );
+      logger.i(
+        '✅ Columnas de moneda y conversión agregadas a la tabla "transacciones"',
+      );
+
+      // 3. Crear la tabla 'currency_config'
+      await db.execute('''
+        CREATE TABLE currency_config (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id INTEGER NOT NULL,
+          base_currency TEXT NOT NULL,
+          preferred_currencies TEXT,
+          last_updated TEXT,
+          FOREIGN KEY (user_id) REFERENCES usuarios(id)
+        );
+      ''');
+      logger.i('✅ Tabla "currency_config" creada exitosamente');
+    }
+
+    if (oldVersion < 8) {
+      logger.i('🔁 Migración v8: agregar tasa_conversion a transacciones');
+      await db.execute(
+        'ALTER TABLE transacciones ADD COLUMN tasa_conversion REAL',
+      );
+      logger.i(
+        '✅ Columna "tasa_conversion" agregada a la tabla "transacciones"',
+      );
     }
   }
 }

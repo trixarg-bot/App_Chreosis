@@ -7,13 +7,32 @@ class CategoriaProvider extends ChangeNotifier {
   final CategoriaRepository repository;
   bool isLoading = false;
   List<Categoria> categorias = [];
+  List<Categoria> _todasLasCategorias =
+      []; // Lista completa incluyendo 'sin categorizar'
   CategoriaProvider({required this.repository});
 
   // Carga las categorías del usuario
   Future<void> cargarCategorias(int userId) async {
-
-    categorias = await repository.getCategorias(userId);
+    _todasLasCategorias = await repository.getCategorias(userId);
+    categorias =
+        _todasLasCategorias
+            .where((cat) => cat.name.toLowerCase() != 'sin categorizar')
+            .toList();
     notifyListeners();
+  }
+
+  // Obtiene todas las categorías incluyendo 'sin categorizar' (para uso interno)
+  List<Categoria> getTodasLasCategorias() {
+    return _todasLasCategorias;
+  }
+
+  // Obtiene una categoría específica por ID (incluyendo 'sin categorizar')
+  Categoria? getCategoriaById(int id) {
+    try {
+      return _todasLasCategorias.firstWhere((cat) => cat.id == id);
+    } catch (e) {
+      return null;
+    }
   }
 
   // Agrega una nueva categoría

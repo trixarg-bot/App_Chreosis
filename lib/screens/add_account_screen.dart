@@ -16,6 +16,7 @@ class _AddAccountScreenState extends State<AddAccountScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
   String? _selectedType;
+  String? _selectedCurrency;
   IconData _selectedIcon = Icons.account_balance_wallet_rounded;
 
   // Valores dinámicos para la tarjeta
@@ -53,12 +54,14 @@ class _AddAccountScreenState extends State<AddAccountScreen> {
     'Tarjeta',
     'Otro',
   ];
+  final List<String> _currencyOptions = ['DOP', 'USD', 'EUR'];
 
   void _clearForm() {
     _nameController.clear();
     _amountController.clear();
     setState(() {
-      _selectedType = '';
+      _selectedType = null;
+      _selectedCurrency = null;
       _selectedIcon = Icons.account_balance_wallet_rounded;
     });
   }
@@ -232,6 +235,27 @@ class _AddAccountScreenState extends State<AddAccountScreen> {
                     ),
                     validator: (value) => value == null || value.isEmpty ? 'Seleccione un tipo' : null,
                   ),
+                  const SizedBox(height: 18),
+                  const Text('Moneda', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17, color: Colors.white)),
+                  const SizedBox(height: 4),
+                   DropdownButtonFormField<String>(
+                    dropdownColor: Colors.grey[800],
+                    value: _selectedCurrency,
+                    items: _currencyOptions.map((moneda) => DropdownMenuItem(
+                      value: moneda,
+                      child: Text(moneda, style: const TextStyle(color: Colors.white)),
+                    )).toList(),
+                    onChanged: (value) => setState(() => _selectedCurrency = value!),
+                    decoration: InputDecoration(
+                      hintText: 'Seleccione una moneda...',
+                      hintStyle: TextStyle(fontWeight: FontWeight.bold),
+                      filled: true,
+                      fillColor: Color.fromARGB(255, 134, 133, 133),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.white)),
+                    ),
+                    validator: (value) => value == null || value.isEmpty ? 'Seleccione una moneda' : null,
+                  ),
                   const SizedBox(height: 32),
                   Row(
                     children: [
@@ -259,6 +283,7 @@ class _AddAccountScreenState extends State<AddAccountScreen> {
                                 name: _nameController.text.trim(),
                                 type: _selectedType!,
                                 amount: double.tryParse(_amountController.text.trim()) ?? 0.0,
+                                moneda: _selectedCurrency!
                               );
                               if (mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(

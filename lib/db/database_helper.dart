@@ -6,6 +6,7 @@ import 'package:chreosis_app/db/migrations_helper.dart';
 import 'package:chreosis_app/models/usuario.dart';
 import 'package:chreosis_app/models/transaccion.dart';
 import 'package:chreosis_app/models/categoria.dart';
+import 'package:chreosis_app/models/currency_config.dart';
 
 // Clase singleton que gestiona toda la lógica de la base de datos
 class DatabaseHelper {
@@ -15,6 +16,7 @@ class DatabaseHelper {
     final db = await instance.database;
     await db.delete('transacciones');
   }
+
   //! --- FIN SOLO DESARROLLO ---
   // Crea una única instancia de la clase (patrón Singleton)
   static final DatabaseHelper instance = DatabaseHelper._init();
@@ -44,7 +46,7 @@ class DatabaseHelper {
     final path = join(dbPath, filePath);
 
     //* Abre la base de datos, y si no existe, ejecuta la función _createDB
-    return await openDatabase(path, version: 6, onCreate: _createDB, onUpgrade: MigrationHelper.onUpgrade,);
+    return await openDatabase(path, version: 7, onCreate: _createDB, onUpgrade: MigrationHelper.onUpgrade,);
   }
 
   //* Esta función se ejecuta SOLO la primera vez que se crea la base de datos
@@ -70,6 +72,7 @@ class DatabaseHelper {
           name TEXT NOT NULL,
           type TEXT,
           amount REAL DEFAULT 0,
+          moneda TEXT NOT NULL DEFAULT 'DOP',
           FOREIGN KEY (user_id) REFERENCES usuarios(id),
           UNIQUE(user_id, name)
         );
@@ -87,7 +90,7 @@ class DatabaseHelper {
           UNIQUE(user_id, name)
         );
       ''');
-    //TODO: AGREGAR LUGAR A LA TABLA DE TRANSACCIONES
+
     // Crea tabla de transacciones (movimientos financieros)
     await db.execute('''
       CREATE TABLE transacciones (
@@ -102,11 +105,26 @@ class DatabaseHelper {
         note TEXT,
         attachment TEXT,
         created_at TEXT,
+        moneda TEXT NOT NULL,
+        conversion INTEGER NOT NULL DEFAULT 0,
+        monto_convertido REAL,
+        tasa_conversion REAL,
         FOREIGN KEY (user_id) REFERENCES usuarios (id),
         FOREIGN KEY (category_id) REFERENCES categorias (id),
         FOREIGN KEY (account_id) REFERENCES cuentas (id)
       );
     ''');
+    // Crea tabla para la configuracion de divisas
+    await db.execute('''
+        CREATE TABLE currency_config (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id INTEGER NOT NULL,
+          base_currency TEXT NOT NULL,
+          preferred_currencies TEXT,
+          last_updated TEXT,
+          FOREIGN KEY (user_id) REFERENCES usuarios(id)
+        );
+      ''');
   }
 
   //** */ --- USUARIOS ---
@@ -246,6 +264,7 @@ class DatabaseHelper {
       name: cuenta.name,
       type: cuenta.type,
       amount: nuevoMonto,
+      moneda: cuenta.moneda
     );
     await updateCuenta(cuentaActualizada);
     await _deleteTransaccionDB(transaccionId); // CORRECTO
@@ -311,7 +330,53 @@ class DatabaseHelper {
       'SELECT SUM(amount) as total FROM cuentas WHERE user_id = ?',
       [userId],
     );
-    return result.first['total'] != null ? (result.first['total'] as num).toDouble() : 0.0;
+    return result.first['total'] != null ? (result.first['total'] as num).toDouble(): 0.0;
+    }
+
+  //** */ --- currency ---
+  // Insertar configuración de moneda
+  Future<int> insertCurrencyConfig(CurrencyConfig config) async {
+    final db = await instance.database;
+    return await db.insert('currency_config', config.toMap());
+  }
+
+  // Obtener configuración de moneda por usuario
+  Future<Map<String, dynamic>?> getCurrencyConfigByUser(int userId) async {
+    final db = await instance.database;
+    final result = await db.query(
+      'currency_config',
+      where: 'user_id = ?',
+      whereArgs: [userId],
+      orderBy: 'id DESC',
+      limit: 1,
+    );
+    if (result.isNotEmpty) {
+      return result.first;
+    }
+    return null;
+  }
+
+  // Actualizar configuración de moneda
+  Future<int> updateCurrencyConfig(int id, Map<String, dynamic> config) async {
+    final db = await instance.database;
+    return await db.update(
+      'currency_config',
+      config,
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  // Eliminar configuración de moneda
+  Future<int> deleteCurrencyConfig(int id) async {
+    final db = await instance.database;
+    return await db.delete('currency_config', where: 'id = ?', whereArgs: [id]);
+  }
+
+  // Obtener todas las configuraciones de moneda (opcional)
+  Future<List<Map<String, dynamic>>> getAllCurrencyConfigs() async {
+    final db = await instance.database;
+    return await db.query('currency_config');
   }
   
   // Obtiene la versión de la base de datos

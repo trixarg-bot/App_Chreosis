@@ -51,7 +51,7 @@ class ReportesDataHelper {
     final transacciones = transactionProvider.transacciones;
     final categoriaProvider = Provider.of<CategoriaProvider>(context, listen: false);
       await categoriaProvider.cargarCategorias(userId);
-    final categorias = categoriaProvider.categorias;
+    final categorias = categoriaProvider.getTodasLasCategorias();
     // 3. Filtrar por tipo y rango de fecha
     final tipoFiltrado = tipo == 'gastos' ? 'gasto' : 'ingreso';
     final transaccionesFiltradas = transacciones.where((t) {

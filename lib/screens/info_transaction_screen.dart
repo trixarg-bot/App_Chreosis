@@ -8,6 +8,7 @@ import '../models/cuenta.dart';
 import '../models/categoria.dart';
 import '../providers/transaction_provider.dart';
 import '../providers/usuario_provider.dart';
+import 'package:collection/collection.dart';
 
 class InfoTransactionScreen extends StatefulWidget {
   final Transaccion transaccion;
@@ -49,35 +50,25 @@ class _InfoTransactionScreenState extends State<InfoTransactionScreen> {
     final fecha =
         '${selectedDate.day.toString().padLeft(2, '0')}/${selectedDate.month.toString().padLeft(2, '0')}/${selectedDate.year}';
     final cuentas = Provider.of<CuentaProvider>(context).cuentas;
-    final categorias = Provider.of<CategoriaProvider>(context).categorias;
-    final cuenta =
-        cuentas
-            .firstWhere(
-              (c) => c.id == selectedAccountId,
-              orElse:
-                  () => Cuenta(
-                    id: -1,
-                    userId: 0,
-                    name: selectedAccountId.toString(),
-                    type: '',
-                    amount: 0,
-                  ),
-            )
-            .name;
+    final categoriaProvider = Provider.of<CategoriaProvider>(context);
+    final categorias = categoriaProvider.getTodasLasCategorias();
+    final cuenta = cuentas.firstWhereOrNull(
+      (c) => c.id == widget.transaccion.accountId,
+    );
+
+    if (cuenta == null) {
+      return Center(
+        child: Text(
+          'No se encontró la cuenta asociada a esta transacción.',
+          style: TextStyle(color: Colors.red),
+        ),
+      );
+    }
+
     final categoria =
-        categorias
-            .firstWhere(
-              (cat) => cat.id == selectedCategoryId,
-              orElse:
-                  () => Categoria(
-                    id: -1,
-                    userId: 0,
-                    name: selectedCategoryId.toString(),
-                    type: '',
-                    iconCode: 0,
-                  ),
-            )
-            .name;
+        categoriaProvider.getCategoriaById(selectedCategoryId)?.name ??
+        'Sin categoría';
+    final monedaDestino = cuenta.moneda;
 
     return Scaffold(
       backgroundColor: const Color(0xFF282C35),
@@ -189,6 +180,73 @@ class _InfoTransactionScreenState extends State<InfoTransactionScreen> {
                 ],
               ),
             ),
+            if (widget.transaccion.conversion &&
+                widget.transaccion.tasaConversion != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 12.0, bottom: 8.0),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.currency_exchange,
+                      color: Colors.amber,
+                      size: 22,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Tasa de conversión (${widget.transaccion.moneda} → ',
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 16,
+                      ),
+                    ),
+                    Builder(
+                      builder: (context) {
+                        // Buscar la moneda destino de la cuenta
+                        final cuentas =
+                            Provider.of<CuentaProvider>(
+                              context,
+                              listen: false,
+                            ).cuentas;
+                        final cuenta = cuentas.firstWhere(
+                          (c) => c.id == widget.transaccion.accountId,
+                          orElse:
+                              () => Cuenta(
+                                id: -1,
+                                userId: 0,
+                                name: '',
+                                type: '',
+                                amount: 0,
+                                moneda: '-',
+                              ),
+                        );
+                        final monedaDestino = cuenta.moneda;
+                        return Text(
+                          monedaDestino + ')',
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 16,
+                          ),
+                        );
+                      },
+                    ),
+                    Text(
+                      ': ',
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 16,
+                      ),
+                    ),
+                    Text(
+                      widget.transaccion.tasaConversion!.toStringAsFixed(4),
+                      style: const TextStyle(
+                        color: Colors.amber,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             const SizedBox(height: 20),
             // Info editable
             Wrap(
@@ -236,7 +294,7 @@ class _InfoTransactionScreenState extends State<InfoTransactionScreen> {
                             icon: Icons.account_balance_wallet_rounded,
                             iconColor: const Color(0xFF4FC3F7),
                             label: 'Cuenta',
-                            value: cuenta,
+                            value: cuenta.name,
                           ),
                 ),
                 SizedBox(
@@ -445,6 +503,10 @@ class _InfoTransactionScreenState extends State<InfoTransactionScreen> {
                           type: type,
                           note: note,
                           createdAt: widget.transaccion.createdAt,
+                          moneda: widget.transaccion.moneda,
+                          conversion: widget.transaccion.conversion,
+                          montoConvertido: widget.transaccion.montoConvertido,
+                          tasaConversion: widget.transaccion.tasaConversion,
                         );
                         await Provider.of<TransactionProvider>(
                           context,

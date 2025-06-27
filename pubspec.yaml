@@ -34,12 +34,16 @@ dependencies:
   fl_chart: ^0.64.0
   intl: any
   provider: ^6.1.2
+  collection: ^1.17.2
   # rive: ^0.12.4
   flutter_svg: ^2.0.2
   flutter_iconpicker: ^3.2.4
   speech_to_text: ^7.0.0
   flutter_dotenv: ^5.1.0
   http: ^1.2.2
+
+  # Dependencias para el sistema de conversión de monedas
+  connectivity_plus: ^5.0.2  # Para verificar conectividad
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

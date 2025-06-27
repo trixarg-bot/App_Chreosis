@@ -21,6 +21,7 @@ import 'repositories/categoria_repository.dart';
 import 'repositories/cuenta_repository.dart';
 import 'providers/cuenta_provider.dart';
 import 'services/firebase_service.dart';
+import 'services/Api_currency_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,7 +35,7 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => UsuarioProvider(repository: UsuarioRepository())),
-        ChangeNotifierProvider(create: (_) => TransactionProvider(repository: TransaccionRepository(), usuarioRepository: UsuarioRepository(), cuentaRepository: CuentaRepository())),
+        ChangeNotifierProvider(create: (_) => TransactionProvider(repository: TransaccionRepository(), usuarioRepository: UsuarioRepository(), cuentaRepository: CuentaRepository(), currencyService: ApiCurrencyService(),)),
         ChangeNotifierProvider(create: (_) => UsuarioProvider(repository: UsuarioRepository())),
         ChangeNotifierProvider(create: (_) => CategoriaProvider(repository: CategoriaRepository())),
         ChangeNotifierProvider(create: (_) => CuentaProvider(repository: CuentaRepository())),
