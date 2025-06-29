@@ -21,7 +21,8 @@ class FirebaseService {
       FlutterLocalNotificationsPlugin();
   
   //TODO: URL base del servidor - deberías moverlo a variables de entorno
-  static const String _baseUrl = 'https://api-chreosis-production.up.railway.app';
+  static const String _baseUrl =
+      'https://api-chreosis-production-e4ed.up.railway.app';
 
   static Future<void> initialize() async {
     try {
@@ -203,7 +204,7 @@ class FirebaseService {
       // Buscar la categoría por nombre
       Categoria categoria;
       try {
-        categoria = categoriaProvider.categorias.firstWhere(
+        categoria = categoriaProvider.getTodasLasCategorias().firstWhere(
           (cat) =>
               cat.name.toLowerCase() ==
               transactionData['categoria'].toLowerCase(),
@@ -211,7 +212,7 @@ class FirebaseService {
       } catch (e) {
         // Si no se encuentra la categoría, buscar o crear "Sin categorizar"
         try {
-          categoria = categoriaProvider.categorias.firstWhere(
+          categoria = categoriaProvider.getTodasLasCategorias().firstWhere(
             (cat) => cat.name.toLowerCase() == 'sin categorizar',
           );
         } catch (e) {
@@ -254,7 +255,7 @@ class FirebaseService {
         note: transactionData['lugar'],
         createdAt: DateTime.now().toIso8601String(),
         moneda: transactionData['moneda'],
-        conversion: transactionData['isconversion']
+        conversion: transactionData['moneda'] != cuenta.moneda,
       );
 
       // Guardar la transacción usando el TransactionProvider

@@ -131,8 +131,14 @@ class _AccountsScreenState extends State<AccountsScreen> {
                             padding: const EdgeInsets.only(top: 6, bottom: 2),
                             child: Text(
                               '\$${saldo.toStringAsFixed(2)}',
-                              style: const TextStyle(
-                                color: Colors.white,
+                              style: TextStyle(
+                                color:
+                                    saldo < 0
+                                        ? const Color(
+                                          0xFFEB5757,
+                                        ) // Rojo para saldos negativos
+                                        : Colors
+                                            .white, // Blanco para saldos positivos
                                 fontWeight: FontWeight.bold,
                                 fontSize: 22,
                               ),
@@ -204,9 +210,19 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                 padding: const EdgeInsets.only(top: 4.0),
                                 child: Text(
                                   '\$${cuenta.amount.toStringAsFixed(2)}',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    color: Color.fromARGB(255, 169, 167, 167),
+                                    color:
+                                        cuenta.amount < 0
+                                            ? const Color(
+                                              0xFFEB5757,
+                                            ) // Rojo para saldos negativos
+                                            : const Color.fromARGB(
+                                              255,
+                                              169,
+                                              167,
+                                              167,
+                                            ), // Color original para saldos positivos
                                     fontSize: 18,
                                   ),
                                 ),
