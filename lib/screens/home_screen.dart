@@ -444,10 +444,20 @@ class _HomeScreenState extends State<HomeScreen>
                                   );
                               return Text(
                                 numberFormat.format(saldo),
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 28,
                                   fontWeight: FontWeight.bold,
-                                  color: Color.fromARGB(255, 164, 185, 183),
+                                  color:
+                                      saldo < 0
+                                          ? const Color(
+                                            0xFFEB5757,
+                                          ) // Rojo para saldos negativos
+                                          : const Color.fromARGB(
+                                            255,
+                                            164,
+                                            185,
+                                            183,
+                                          ), // Color original para saldos positivos
                                 ),
                               );
                             },

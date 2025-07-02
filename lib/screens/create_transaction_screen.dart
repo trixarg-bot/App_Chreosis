@@ -187,15 +187,23 @@ class _CreateTransactionScreenState extends State<CreateTransactionScreen> {
       tasaConversion: null, // El provider se encargará de esto
     );
 
-    await Provider.of<TransactionProvider>(
+    final result = await Provider.of<TransactionProvider>(
       context,
       listen: false,
     ).agregarTransaccion(transaccion);
 
     setState(() => _loading = false);
     if (mounted) {
+      String message =
+          result
+              ? 'Transacción guardada exitosamente. ¡Atención! Tu saldo quedó negativo.'
+              : 'Transacción guardada exitosamente';
+
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Transacción guardada exitosamente')),
+        SnackBar(
+          content: Text(message),
+          backgroundColor: result ? Colors.orange : null,
+        ),
       );
       Navigator.pop(context, true);
     }

@@ -28,9 +28,9 @@ class TransactionProvider extends ChangeNotifier {
  }
 
 // Agrega una nueva transacción
- Future<void> agregarTransaccion(Transaccion transaccion) async {
+  Future<bool> agregarTransaccion(Transaccion transaccion) async {
     final cuenta = await cuentaRepository.getCuentaById(transaccion.accountId);
-    if (cuenta == null) return; // No se puede procesar sin una cuenta
+    if (cuenta == null) return false; // No se puede procesar sin una cuenta
 
     double montoAfectado = transaccion.amount;
     Transaccion transaccionFinal = transaccion;
@@ -65,20 +65,15 @@ class TransactionProvider extends ChangeNotifier {
           print(
             "Error: No se pudo obtener la tasa de cambio. Transacción cancelada.",
           );
-          return;
+          return false;
         }
       } catch (e) {
         print("Error durante la conversión de moneda: $e");
-        return; // Salir si hay un error en la API
+        return false; // Salir si hay un error en la API
       }
     }
 
-    // Lógica para verificar fondos (usando el monto que realmente afecta la cuenta)
-    if (transaccion.type == 'gasto' && montoAfectado > cuenta.amount) {
-      // Opcional: podrías lanzar una excepción o notificar al usuario de fondos insuficientes
-      print("Error: Fondos insuficientes para realizar la transacción.");
-      return;
-    }
+
 
     // 5. Actualizar el saldo de la cuenta
     double nuevoMontoCuenta = cuenta.amount;
@@ -87,6 +82,9 @@ class TransactionProvider extends ChangeNotifier {
     } else {
       nuevoMontoCuenta += montoAfectado;
     }
+
+    // Verificar si el nuevo saldo será negativo
+    bool saldoNegativo = nuevoMontoCuenta < 0;
 
     await cuentaRepository.updateCuenta(
       cuenta.copyWith(amount: nuevoMontoCuenta),
@@ -97,6 +95,9 @@ class TransactionProvider extends ChangeNotifier {
 
     await cargarTransacciones(transaccion.userId);
     notifyListeners();
+
+    // Retornar información sobre si el saldo quedó negativo
+    return saldoNegativo;
   }
 
 // Actualiza una transacción
