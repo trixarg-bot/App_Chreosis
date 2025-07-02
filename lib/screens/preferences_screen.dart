@@ -30,82 +30,82 @@ class PreferencesScreen extends StatelessWidget {
             subtitle: 'Personaliza tus categorías',
             onTap: () => Navigator.pushNamed(context, '/add_category'),
           ),
-          _SettingsTile(
-            icon: Icons.email_rounded,
-            title: 'Conectar correo',
-            titleColor: Colors.white,
-            subtitle: 'Sincroniza tus notificaciones de consumo',
-            onTap: () => Navigator.pushNamed(context, '/email_setup'),
-          ),
-          _SectionTitle('Personalización'),
-          _SettingsTile(
-            icon: Icons.attach_money_rounded,
-            title: 'Personalizar moneda',
-            titleColor: Colors.white,
-            subtitle: 'Pesos, Dólares, Euros...'
-          ),
-          _SettingsTile(
-            icon: Icons.flash_on_rounded,
-            title: 'Configurar inicio rápido',
-            titleColor: Colors.white,
-            subtitle: 'Elige pantalla de inicio'
-          ),
-          _SettingsTile(
-            icon: Icons.dark_mode_rounded,
-            title: 'Modo oscuro',
-            titleColor: Colors.white,
-            subtitle: 'Activa/desactiva modo oscuro',
-            trailing: Switch(value: false, onChanged: null),
-          ),
-          _SectionTitle('Recordatorios y notificaciones'),
-          _SettingsTile(
-            icon: Icons.notifications_active_rounded,
-            title: 'Recordatorio de gastos diarios',
-            titleColor: Colors.white,
-            subtitle: 'Recibe notificaciones diarias',
-            trailing: Switch(value: false, onChanged: null),
-          ),
-          _SectionTitle('General'),
-          _SettingsTile(
-            icon: Icons.language_rounded,
-            titleColor: Colors.white,
-            title: 'Idioma de la app',
-            subtitle: 'Español, Inglés'
-          ),
-          _SettingsTile(
-            icon: Icons.backup_rounded,
-            title: 'Copia de seguridad (Backup Manual)',
-            titleColor: Colors.white,
-            subtitle: 'Exporta tus datos locales'
-          ),
-          _SettingsTile(
-            icon: Icons.restore,
-            title: 'Restablecer categorías',
-            titleColor: Colors.white,
-            subtitle: 'Vuelve a los valores predeterminados'
-          ),
-          _SettingsTile(
-            icon: Icons.person,
-            title: 'Cambiar nombre y correo',
-            titleColor: Colors.white,
-            subtitle: 'Edita tu perfil'
-          ),
-          _SettingsTile(
-            icon: Icons.logout,
-            title: 'Cerrar sesión',
-            subtitle: 'Resetear cuenta o sesión',
-            titleColor: Colors.red,
-            onTap: () async {
-              // Limpiar sesión en Provider
-              final userProvider = Provider.of<UsuarioProvider>(context, listen: false);
-              userProvider.logout();
-              // Limpiar sesión en SharedPreferences
-              final prefs = await SharedPreferences.getInstance();
-              await prefs.remove('user_id');
-              // Navegar a LoginScreen y limpiar el stack de navegación
-              Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
-            },
-          ),
+          // _SettingsTile(
+          //   icon: Icons.email_rounded,
+          //   title: 'Conectar correo',
+          //   titleColor: Colors.white,
+          //   subtitle: 'Sincroniza tus notificaciones de consumo',
+          //   onTap: () => Navigator.pushNamed(context, '/email_setup'),
+          // ),
+          // _SectionTitle('Personalización'),
+          // _SettingsTile(
+          //   icon: Icons.attach_money_rounded,
+          //   title: 'Personalizar moneda',
+          //   titleColor: Colors.white,
+          //   subtitle: 'Pesos, Dólares, Euros...'
+          // ),
+          // _SettingsTile(
+          //   icon: Icons.flash_on_rounded,
+          //   title: 'Configurar inicio rápido',
+          //   titleColor: Colors.white,
+          //   subtitle: 'Elige pantalla de inicio'
+          // ),
+          // _SettingsTile(
+          //   icon: Icons.dark_mode_rounded,
+          //   title: 'Modo oscuro',
+          //   titleColor: Colors.white,
+          //   subtitle: 'Activa/desactiva modo oscuro',
+          //   trailing: Switch(value: false, onChanged: null),
+          // ),
+          // _SectionTitle('Recordatorios y notificaciones'),
+          // _SettingsTile(
+          //   icon: Icons.notifications_active_rounded,
+          //   title: 'Recordatorio de gastos diarios',
+          //   titleColor: Colors.white,
+          //   subtitle: 'Recibe notificaciones diarias',
+          //   trailing: Switch(value: false, onChanged: null),
+          // ),
+          // _SectionTitle('General'),
+          // _SettingsTile(
+          //   icon: Icons.language_rounded,
+          //   titleColor: Colors.white,
+          //   title: 'Idioma de la app',
+          //   subtitle: 'Español, Inglés'
+          // ),
+          // _SettingsTile(
+          //   icon: Icons.backup_rounded,
+          //   title: 'Copia de seguridad (Backup Manual)',
+          //   titleColor: Colors.white,
+          //   subtitle: 'Exporta tus datos locales'
+          // ),
+          // _SettingsTile(
+          //   icon: Icons.restore,
+          //   title: 'Restablecer categorías',
+          //   titleColor: Colors.white,
+          //   subtitle: 'Vuelve a los valores predeterminados'
+          // ),
+          // _SettingsTile(
+          //   icon: Icons.person,
+          //   title: 'Cambiar nombre y correo',
+          //   titleColor: Colors.white,
+          //   subtitle: 'Edita tu perfil'
+          // ),
+          // _SettingsTile(
+          //   icon: Icons.logout,
+          //   title: 'Cerrar sesión',
+          //   subtitle: 'Resetear cuenta o sesión',
+          //   titleColor: Colors.red,
+          //   onTap: () async {
+          //     // Limpiar sesión en Provider
+          //     final userProvider = Provider.of<UsuarioProvider>(context, listen: false);
+          //     userProvider.logout();
+          //     // Limpiar sesión en SharedPreferences
+          //     final prefs = await SharedPreferences.getInstance();
+          //     await prefs.remove('user_id');
+          //     // Navegar a LoginScreen y limpiar el stack de navegación
+          //     Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+          //   },
+          // ),
           _buildSection(
             'Conectar Correo',
             [

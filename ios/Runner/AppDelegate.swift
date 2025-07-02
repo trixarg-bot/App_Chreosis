@@ -36,7 +36,11 @@ import UserNotifications
       )
     }
     
+    // Registrar para notificaciones remotas inmediatamente
     application.registerForRemoteNotifications()
+    
+    // Configurar Firebase Messaging
+    Messaging.messaging().delegate = self
     
     GeneratedPluginRegistrant.register(with: self)
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
@@ -50,7 +54,7 @@ import UserNotifications
   ) {
     print("📱 Notificación recibida en primer plano")
     // Mostrar la notificación incluso cuando la app está en primer plano
-    completionHandler([.sound, .badge])
+    completionHandler([.sound, .badge, .alert])
   }
   
   // Manejar interacción con la notificación
@@ -100,5 +104,19 @@ import UserNotifications
     }
     
     completionHandler(UIBackgroundFetchResult.newData)
+  }
+}
+
+// MARK: - MessagingDelegate
+extension AppDelegate: MessagingDelegate {
+  func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
+    print("🔄 Token FCM actualizado: \(fcmToken ?? "nil")")
+    
+    let dataDict: [String: String] = ["token": fcmToken ?? ""]
+    NotificationCenter.default.post(
+      name: Notification.Name("FCMToken"),
+      object: nil,
+      userInfo: dataDict
+    )
   }
 }
